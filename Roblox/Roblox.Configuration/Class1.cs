@@ -31,6 +31,8 @@ public static class Configuration
     public static bool ExternalIpLookupEnabled { get; set; }
     /// <summary>Mark session cookies Secure (HTTPS only). Must be true on any HTTPS host.</summary>
     public static bool SecureCookies { get; set; }
+    /// <summary>Header our reverse proxy overwrites with the visitor IP (Caddy: header_up). Empty = not behind a proxy.</summary>
+    public static string? TrustedProxyClientIpHeader { get; set; }
     public const string UntrustedContentDisabledMessage =
         "This kind of upload is not available yet. It needs the isolated render service, which is not set up.";
     public static string CdnBaseUrl { get; set; }

@@ -41,6 +41,7 @@ Roblox.Configuration.RequireSignupApproval = configuration.GetValue<bool>("Featu
 Roblox.Configuration.DailyStipendEnabled = configuration.GetValue<bool>("Features:DailyStipend");
 Roblox.Configuration.ExternalIpLookupEnabled = configuration.GetValue<bool>("Security:ExternalIpLookup");
 Roblox.Configuration.SecureCookies = configuration.GetValue<bool>("Security:SecureCookies");
+Roblox.Configuration.TrustedProxyClientIpHeader = configuration["Security:TrustedProxyClientIpHeader"];
 if (!string.IsNullOrWhiteSpace(configuration["Secrets:UserAgentBypass"])) Roblox.Configuration.UserAgentBypassSecret = configuration["Secrets:UserAgentBypass"]!;
 if (!string.IsNullOrWhiteSpace(configuration["Secrets:Verification"])) Roblox.Configuration.VerificationSecret = configuration["Secrets:Verification"]!;
 Console.WriteLine("[security] untrusted content processing (RCC/native converters): {0}", Roblox.Configuration.AllowUntrustedContentProcessing ? "ENABLED" : "disabled");

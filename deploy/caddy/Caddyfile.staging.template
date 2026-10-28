@@ -1,0 +1,47 @@
+# Eclipso: placeholder on eclipso.lol/www; real website on staging.eclipso.lol behind a password.
+# __STAGING_HASH__ is replaced on the server by a bcrypt hash (caddy hash-password); the password is never stored in Git.
+
+(security_headers) {
+	header {
+		Strict-Transport-Security "max-age=31536000"
+		X-Content-Type-Options nosniff
+		Referrer-Policy strict-origin-when-cross-origin
+		-Server
+	}
+}
+
+eclipso.lol {
+	root * /var/www/eclipso-landing
+	file_server
+	encode gzip
+	import security_headers
+	header {
+		X-Frame-Options DENY
+		Content-Security-Policy "default-src 'none'; img-src 'self'; style-src 'unsafe-inline'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'"
+	}
+}
+
+www.eclipso.lol {
+	redir https://eclipso.lol{uri} permanent
+}
+
+staging.eclipso.lol {
+	basic_auth {
+		kindmops __STAGING_HASH__
+	}
+	encode gzip
+	import security_headers
+	header X-Robots-Tag "noindex, nofollow"
+	request_body {
+		max_size 12MB
+	}
+	reverse_proxy 127.0.0.1:5080 {
+		# Overwrite (never append) the client IP header the website trusts. Clients cannot forge it.
+		header_up X-Eclipso-Client-IP {remote_host}
+		header_up -Cf-Connecting-Ip
+	}
+}
+
+http://2.24.48.245 {
+	redir https://eclipso.lol{uri}
+}

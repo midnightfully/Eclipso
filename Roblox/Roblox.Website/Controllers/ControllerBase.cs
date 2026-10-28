@@ -58,13 +58,20 @@ namespace Roblox.Website.Controllers
         {
             Debug.Assert(ctx != null);
             // Check for cloudflare
+            // Only a header set by our own reverse proxy is trusted, and only when the connection really comes
+            // from it (loopback). Previously "cf-connecting-ip" was trusted from anyone, so clients could choose
+            // their IP and evade bans/rate limits; and behind the proxy every visitor looked like 127.0.0.1.
             var headers = ctx.Request.Headers;
-            if (headers.ContainsKey("cf-connecting-ip"))
+            var remote = ctx.Connection.RemoteIpAddress;
+            var trustedHeader = Roblox.Configuration.TrustedProxyClientIpHeader;
+            if (!string.IsNullOrEmpty(trustedHeader) && remote != null && System.Net.IPAddress.IsLoopback(remote)
+                && headers.TryGetValue(trustedHeader, out var forwarded)
+                && System.Net.IPAddress.TryParse(forwarded.ToString().Trim(), out var forwardedIp))
             {
-                return headers["cf-connecting-ip"];
+                return forwardedIp.ToString();
             }
 
-            var ipString = ctx.Connection.RemoteIpAddress?.ToString();
+            var ipString = remote?.ToString();
             if (string.IsNullOrEmpty(ipString))
                 throw new Exception("Bad IP address - empty or null string");
             return ipString;

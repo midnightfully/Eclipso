@@ -1,0 +1,29 @@
+[Unit]
+Description=Eclipso website backend (.NET)
+After=network.target postgresql.service redis-server.service
+Wants=postgresql.service redis-server.service
+
+[Service]
+User=eclipso
+Group=eclipso
+WorkingDirectory=/opt/eclipso/current/website
+Environment=ECLIPSO_CONFIG_DIR=/etc/eclipso
+Environment=DOTNET_CLI_TELEMETRY_OPTOUT=1
+Environment=ASPNETCORE_ENVIRONMENT=Production
+ExecStart=/usr/bin/dotnet /opt/eclipso/current/website/Roblox.Website.dll
+Restart=always
+RestartSec=5
+# Hardening: read-only system, writable data only.
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/eclipso
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+LockPersonality=true
+
+[Install]
+WantedBy=multi-user.target
