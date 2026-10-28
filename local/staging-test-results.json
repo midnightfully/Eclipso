@@ -18,7 +18,7 @@
     "test": "Signup, login, Secure session cookie",
     "result": "PASS",
     "details": {
-      "userId": 2,
+      "userId": 4,
       "session cookie": "Secure; HttpOnly",
       "wrong password": "refused"
     }
