@@ -78,7 +78,8 @@ No browser screenshots, complete 2017 appearance, 3D item readiness, public depl
 | Logged-in `/` → `/home` redirect | HTTP | PASS | |
 | Content-Security-Policy blocked all local images | Browser | Fixed | Policy trusted only bbblox.org/zawg.ca. Now `'self'` + configured CDN; added object-src/base-uri/frame-ancestors; HSTS `preload` removed |
 | Landing page renders in browser | Browser (built-in, 1366 px) | PASS (visual) | Form submit through the browser not yet exercised |
-| Logged-out `/home` | Browser | **FAIL** | Empty page; should redirect to signup |
+| Logged-out `/home` | Browser | Fixed, PASS | pages/home.js redirects to the signup page once authentication resolves |
 | Session survives website restart | Browser | **UNVERIFIED** | A browser session was signed out after a restart; needs an API persistence test |
 
 Security findings logged for the audit (not yet fixed): `HttpGetBypass`/`HttpPostBypass` register routes as **prefixes** in the CSRF and application-guard bypass lists (e.g. `/users/`, `/asset`, `/login`), exempting whole URL trees from CSRF checks.
+| Owner-supplied Eclipso logo, E mark and background | Browser (1366 px) | PASS: all load, no horizontal overflow | Resized for web (≈0.44 MB total); originals kept by owner. Background rights still to confirm (docs/ASSET-PROVENANCE.md) |
