@@ -9,7 +9,7 @@ Updated 2026-10-28 by Claude. Keep this short; details live in FEATURE-MATRIX.md
 | Environment | URL | What it is |
 |---|---|---|
 | Public | https://eclipso.lol, https://staging.eclipso.lol | **Static "Coming soon" page only** (Caddy on the Hostinger VPS). No accounts, backend or database online. |
-| Local (kindmops's PC) | http://127.0.0.1:5080 | The real website: .NET 10 backend :5080, Next.js dev :3000, PostgreSQL 16 :15432, Garnet cache :16379. Start/stop with the root .cmd launchers. |
+| Local (kindmops's PC) | http://127.0.0.1:5080 | The real website: .NET 10 backend :5080, Next.js production build :3000 (`next start`), PostgreSQL 16 :15432, Garnet cache :16379. Start/stop with the root .cmd launchers. |
 
 Repository: github.com/midnightfully/Eclipso. `main` = upstream bubbablox-v2 history. Work branches:
 `claude/recover-startup` (startup, routing, CSP, landing, VPS) → `claude/admin-milestone` (admin, publishing, economy) → `claude/website-completion` (launcher, production frontend, sessions, branding). None merged yet.
