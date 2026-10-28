@@ -11,6 +11,7 @@ public class GameServerConfigEntry
 
 public static class Configuration
 {
+    public static bool LocalDevelopment { get; set; }
     public static string CdnBaseUrl { get; set; }
     public static string StorageDirectory { get; set; }
     public static string AssetDirectory { get; set; }

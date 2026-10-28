@@ -1,6 +1,8 @@
 {
   "serverRuntimeConfig": {
-    "backend": {"csrfKey":"2NekqgcpRg4+Y3RRcYjE4jVt8xuDwTS1JpZPlKFAgUdHu1EKhP2HvJD5P+axVsz9A1kAT1Sy3C+yFwGcq6ltYw=="}
+    "backend": {
+      "csrfKey": ""
+    }
   },
   "publicRuntimeConfig": {
     "backend": {

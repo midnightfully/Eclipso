@@ -53,6 +53,8 @@ function RobloxApp({ Component, pageProps }) {
     }
   }, [pageProps]);
 
+  if (Component.standalone) return <AuthenticationStore.Provider><Component {...pageProps} /></AuthenticationStore.Provider>;
+
   return <div>
     <Head>
       <link rel="preconnect" href="https://fonts.googleapis.com" />

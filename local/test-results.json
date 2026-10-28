@@ -1,0 +1,34 @@
+[
+  {
+    "test": "Seed sample catalog",
+    "result": "PASS"
+  },
+  {
+    "test": "Create buyer account",
+    "result": "PASS"
+  },
+  {
+    "test": "Create second account",
+    "result": "PASS"
+  },
+  {
+    "test": "Test-credit grant persists in database",
+    "result": "PASS"
+  },
+  {
+    "test": "Catalog purchase deducts balance and grants inventory",
+    "result": "PASS"
+  },
+  {
+    "test": "Duplicate purchase rejected without spending",
+    "result": "PASS"
+  },
+  {
+    "test": "Limited resale transfers the existing copy between accounts",
+    "result": "PASS"
+  },
+  {
+    "test": "Logout and login preserve balances and inventory",
+    "result": "PASS"
+  }
+]

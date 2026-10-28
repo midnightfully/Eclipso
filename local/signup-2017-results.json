@@ -1,0 +1,55 @@
+[
+  {
+    "test": "Terms required",
+    "result": "PASS",
+    "details": "HTTP 400"
+  },
+  {
+    "test": "Invalid birthday",
+    "result": "PASS",
+    "details": "HTTP 400"
+  },
+  {
+    "test": "Future birthday",
+    "result": "PASS",
+    "details": "HTTP 400"
+  },
+  {
+    "test": "Invalid gender",
+    "result": "PASS",
+    "details": "HTTP 400"
+  },
+  {
+    "test": "Short password",
+    "result": "PASS",
+    "details": "HTTP 400"
+  },
+  {
+    "test": "Invalid username",
+    "result": "PASS",
+    "details": "HTTP 400"
+  },
+  {
+    "test": "Register and authenticated session",
+    "result": "PASS",
+    "details": {
+      "userId": 35,
+      "session": "authenticated"
+    }
+  },
+  {
+    "test": "Login with registered credentials",
+    "result": "PASS",
+    "details": "New browser session authenticated"
+  },
+  {
+    "test": "Case-insensitive duplicate rejected",
+    "result": "PASS",
+    "details": "HTTP 400"
+  },
+  {
+    "test": "Public pages",
+    "result": "PASS",
+    "details": "Signup, login and information routes render without redirect loops"
+  }
+]

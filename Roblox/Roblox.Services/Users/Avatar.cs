@@ -707,6 +707,7 @@ public class AvatarService : ServiceBase, IService
     public async Task RedrawAvatar(long userId, IEnumerable<long>? newAssetIds = null, ColorEntry? colors = null,
         AvatarType? avatarType = null, bool forceRedraw = false, bool ignoreLock = true)
     {
+        if (Roblox.Configuration.LocalDevelopment) return; // Rendering is a separate service.
         // required services
         using var assets = ServiceProvider.GetOrCreate<AssetsService>();
 

@@ -10,6 +10,7 @@ const config = JSON.parse(fs.readFileSync(configPath).toString('utf-8'));
 
 module.exports = {
   reactStrictMode: true,
+  distDir: process.env.NEXT_BUILD_DIR || '.next',
   serverRuntimeConfig: config.serverRuntimeConfig,
   publicRuntimeConfig: config.publicRuntimeConfig,
   async redirects() {

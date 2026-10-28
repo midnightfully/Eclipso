@@ -1,0 +1,25 @@
+[
+  {
+    "test": "Exact public Roblox profile after restart",
+    "result": "PASS",
+    "details": "exact username and biography served by API"
+  },
+  {
+    "test": "Admin panel and bundle delivery",
+    "result": "PASS",
+    "details": "authenticated HTML and JavaScript bundle served"
+  },
+  {
+    "test": "Admin upload, purchase and limited product settings",
+    "result": "PASS",
+    "details": {
+      "assetId": 1,
+      "verified": "PNG upload, real purchase, inventory, convert to limited/off-sale; no 3D rendering claimed"
+    }
+  },
+  {
+    "test": "Non-staff admin rejection",
+    "result": "PASS",
+    "details": "non-staff rejected with HTTP 403"
+  }
+]

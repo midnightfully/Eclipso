@@ -1,0 +1,21 @@
+[
+  {
+    "test": "Roblox system profile public API",
+    "result": "FAIL",
+    "error": ""
+  },
+  {
+    "test": "Friendship lifecycle",
+    "result": "PASS",
+    "details": "request, accept, reciprocal lists, remove"
+  },
+  {
+    "test": "Group creation and membership",
+    "result": "PASS",
+    "details": {
+      "groupId": 1,
+      "name": "Local Group c91b7f",
+      "checks": "create, owner, 100 debit, public join"
+    }
+  }
+]

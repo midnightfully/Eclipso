@@ -138,7 +138,7 @@ public class AuthenticationControllerV2 : ControllerBase
         });
         HttpContext.Response.Cookies.Append(Middleware.SessionMiddleware.CookieName, sessionCookie, new CookieOptions()
         {
-            Secure = true,
+            Secure = !Roblox.Configuration.LocalDevelopment,
             Expires = DateTimeOffset.Now.Add(TimeSpan.FromDays(364)),
             IsEssential = true,
             HttpOnly = true,
@@ -175,36 +175,36 @@ public class AuthenticationControllerV2 : ControllerBase
         await CreateSessionAndSetCookie(userId);
     }
 
-/*     [HttpPost("signup")]
-    public async Task<SignupResponse> Signup([Required] SignUpRequest request)
+    [HttpPost("signup")]
+    public async Task<SignupResponse> Signup([Required, FromBody] SignUpRequest request)
     {
-        throw new RobloxException(503, 0, "Service temporarily unavailable");
         FeatureFlags.FeatureCheck(FeatureFlag.SignupEnabled);
-        var usernameValid = await services.users.IsUsernameValid(request.username);
-        if (!usernameValid)
-            throw new BadRequestException(5, "Invalid Username");
-
-        var nameAvailable = await services.users.IsNameAvailableForSignup(request.username);
-        if (!nameAvailable)
-            throw new ForbiddenException(6, "Username is already taken");
-
-        var passwordValid = services.users.IsPasswordValid(request.password);
-        if (!passwordValid)
-            throw new ForbiddenException(9, "Password is too simple");
-        
-        // Initial cooldown check - to prevent people spamming attempts
-        await services.cooldown.CooldownCheck($"signup:step1:" + GetIP(), TimeSpan.FromSeconds(5));
-        // Now make the account
-        var createdUser =
-            await services.users.CreateUser(request.username, request.password, Enum.Parse<Gender>(request.gender));
-
-        await CreateSessionAndSetCookie(createdUser.userId);
-        
-        return new SignupResponse()
+        if (!request.acceptTerms)
+            throw new BadRequestException(10, "Accept the revival terms before creating an account.");
+        if (!DateOnly.TryParseExact(request.birthday, "yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture,
+                System.Globalization.DateTimeStyles.None, out var birthday) ||
+            birthday > DateOnly.FromDateTime(DateTime.UtcNow) || birthday.Year < 1900)
+            throw new BadRequestException(11, "Choose a valid birthday.");
+        if (!Enum.TryParse<Gender>(request.gender, true, out var gender) || !Enum.IsDefined(gender))
+            throw new BadRequestException(12, "Choose a valid gender option.");
+        if (!await services.users.IsUsernameValid(request.username))
+            throw new BadRequestException(5, "Choose a valid username using 3–20 characters.");
+        if (!services.users.IsPasswordValid(request.password))
+            throw new BadRequestException(9, "Choose a stronger password with at least eight characters.");
+        await services.cooldown.CooldownCheck("signup:ip:" + GetIP(), TimeSpan.FromSeconds(5));
+        if (!await services.users.IsNameAvailableForSignup(request.username))
+            throw new BadRequestException(6, "Username is already taken.");
+        try
         {
-            userId = createdUser.userId,
-        };
-    } */
+            var created = await services.users.CreateUser(request.username, request.password, gender);
+            await CreateSessionAndSetCookie(created.userId);
+            return new SignupResponse { userId = created.userId };
+        }
+        catch (UsersService.UsernameTakenException)
+        {
+            throw new BadRequestException(6, "Username is already taken.");
+        }
+    }
 
     [HttpPost("logoutfromallsessionsandreauthenticate")]
     public async Task LogoutFromAllSessionsAndReAuthenticate()

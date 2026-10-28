@@ -1153,7 +1153,9 @@ public class UsersService : ServiceBase, IService
 		long userId = 0;
 		var result = await InTransaction(async _ =>
 		{
-			// Double-check username availability inside transaction
+			// Serialize creation of the same case-insensitive name, including when no row exists yet.
+            await db.ExecuteAsync("SELECT pg_advisory_xact_lock(hashtextextended(lower(:username), 0))", new { username });
+            // Double-check username availability inside transaction
 			nameTaken = await db.QuerySingleOrDefaultAsync<bool>(
 				"SELECT EXISTS(SELECT 1 FROM \"user\" WHERE username ILIKE :username FOR UPDATE)", 
 				new { username });
@@ -1221,7 +1223,9 @@ public class UsersService : ServiceBase, IService
 				}
 			}
 
-			var usersService = ServiceProvider.GetOrCreate<UsersService>();
+			if (!Roblox.Configuration.LocalDevelopment)
+            {
+            using var usersService = ServiceProvider.GetOrCreate<UsersService>();
 			
 			var appId = await usersService.CreateApplication(new CreateUserApplicationRequest()
 			{
@@ -1235,6 +1239,7 @@ public class UsersService : ServiceBase, IService
 
 			var joinId = await usersService.ProcessApplication(appId, 1, UserApplicationStatus.Approved);
 			await usersService.SetApplicationUserIdByJoinId(joinId, userId);
+            }
 
 			// Account settings
 			await InsertAsync("user_settings", "user_id", new
@@ -1317,7 +1322,7 @@ public class UsersService : ServiceBase, IService
 			? Roblox.Configuration.SignupAvatarAssetIdsMan
 			: Roblox.Configuration.SignupAvatarAssetIdsFemale;
 
-		await av.RedrawAvatar(userId, avatarAssetIds);
+		if (!Roblox.Configuration.LocalDevelopment) await av.RedrawAvatar(userId, avatarAssetIds);
 
 		return result;
 	}

@@ -1,7 +1,3 @@
-dont use bubba i mean it 
-its garbage
-anybody who uses this is stupid and you should just make your own revival
-
 using System.ComponentModel.DataAnnotations;
 using System.Text;
 using System.Text.Encodings.Web;
@@ -38,6 +34,7 @@ public class WebController : ControllerBase
     
     static WebController()
     {
+        if (Roblox.Configuration.LocalDevelopment) return;
         // Init server close tasks
         Task.Run(async () =>
         {

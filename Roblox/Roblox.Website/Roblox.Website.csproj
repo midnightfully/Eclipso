@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <NoWarn>8618</NoWarn>
@@ -36,4 +36,5 @@
     <_ContentIncludedByDefault Remove="Pages\Admi\Home.cshtml" />
   </ItemGroup>
 
+<ItemGroup><Content Include="LocalDashboard.html" CopyToOutputDirectory="PreserveNewest" /></ItemGroup>
 </Project>

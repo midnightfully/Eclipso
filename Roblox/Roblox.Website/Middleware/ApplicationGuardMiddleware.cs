@@ -22,6 +22,7 @@ public class ApplicationGuardMiddleware
 
     public static List<string> allowedUrls { get; } = new()
     {
+        "/local",
         "/auth/captcha",
         "/auth/discord",
         "/auth/submit",
@@ -377,7 +378,10 @@ public class ApplicationGuardMiddleware
         var isAuthorized = IsAuthorized(ctx);
         authTimer.Stop();
 
-        if (isAuthorized || allowedUrls.Contains(normalizedPath) /*||
+        var isPublicAccountPage = normalizedPath == "" || normalizedPath == "/login" || normalizedPath == "/signup" ||
+            normalizedPath == "/apisite/auth/v2/signup" || normalizedPath == "/apisite/auth/v2/login" ||
+            normalizedPath == "/info/revival" || normalizedPath.StartsWith("/_next/") || normalizedPath.StartsWith("/img/");
+        if (isAuthorized || isPublicAccountPage || allowedUrls.Contains(normalizedPath) /*||
             RobloxPlayerDataRegex.IsMatch(normalizedPath)*/)
             {
                 appGuardTimer.Stop();

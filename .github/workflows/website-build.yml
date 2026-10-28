@@ -1,0 +1,40 @@
+name: Website build
+on:
+  pull_request:
+  push:
+    branches: [main, '2021']
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: website-build-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  backend:
+    runs-on: windows-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - run: dotnet restore Roblox/Roblox.Website/Roblox.Website.csproj
+      - run: dotnet build Roblox/Roblox.Website/Roblox.Website.csproj --configuration Release --no-restore --nologo
+  frontend:
+    runs-on: windows-latest
+    timeout-minutes: 20
+    env:
+      NEXT_TELEMETRY_DISABLED: '1'
+      NEXT_IGNORE_INCORRECT_LOCKFILE: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: 2016-roblox-main/package-lock.json
+      - run: node scripts/prepare-ci.cjs
+      - run: npm ci --ignore-scripts
+        working-directory: 2016-roblox-main
+      - run: npm run build
+        working-directory: 2016-roblox-main

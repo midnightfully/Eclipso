@@ -44,25 +44,19 @@ public static class Database
     {
         dbConnectionString = databaseConnectionString;
 
-        var allTables = connection.Query("select * from information_schema.tables WHERE table_schema = :table_schema AND table_catalog = :table_catalog", new
+        using var db = new NpgsqlConnection(dbConnectionString);
+        var columns = db.Query("SELECT table_name, column_name FROM information_schema.columns WHERE table_schema = 'public' AND table_catalog = current_database() ORDER BY table_name, ordinal_position");
+        tableNames.Clear();
+        tableToColumnMap.Clear();
+        foreach (var column in columns)
         {
-            table_schema = "public", // todo: this will be configurable
-            table_catalog = connection.Database,
-        });
-        foreach (var item in allTables)
-        {
-            var cols = connection.Query("SELECT * FROM information_schema.columns WHERE table_schema = :schema AND table_name = :table AND table_catalog = :catalog", new
+            string table = column.table_name;
+            if (!tableToColumnMap.ContainsKey(table))
             {
-                catalog = connection.Database,
-                table = item.table_name,
-                schema = "public",
-            });
-            tableNames.Add(item.table_name);
-            tableToColumnMap.Add(item.table_name, new List<string>());
-            foreach (var col in cols)
-            {
-                tableToColumnMap[item.table_name].Add(col.column_name);
+                tableNames.Add(table);
+                tableToColumnMap[table] = new List<string>();
             }
+            tableToColumnMap[table].Add((string)column.column_name);
         }
         // Dapper config here
         Dapper.DefaultTypeMap.MatchNamesWithUnderscores = true;

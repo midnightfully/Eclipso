@@ -1,0 +1,12 @@
+const fs = require('node:fs');
+const path = require('node:path');
+const crypto = require('node:crypto');
+const root = path.resolve(__dirname, '..');
+const target = path.join(root, '2016-roblox-main', 'config.json');
+if (fs.existsSync(target)) throw new Error('Refusing to overwrite existing frontend configuration. Run this only on a clean CI checkout.');
+const config = JSON.parse(fs.readFileSync(path.join(root, '2016-roblox-main', 'config.example.json'), 'utf8'));
+config.serverRuntimeConfig.backend.csrfKey = crypto.randomBytes(64).toString('base64');
+config.publicRuntimeConfig.backend.baseUrl = 'http://127.0.0.1:5080/';
+config.publicRuntimeConfig.backend.apiFormat = 'http://127.0.0.1:5080/apisite/{0}{1}';
+fs.writeFileSync(target, JSON.stringify(config, null, 2));
+console.log('Generated ephemeral frontend build configuration.');

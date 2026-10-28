@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.DataProtection;
 using System.Diagnostics;
 using System.Text.Json;
 using System.Net;
@@ -16,9 +17,7 @@ using Roblox.Website.Hubs;
 using Roblox.Website.WebsiteModels;
 using Npgsql;
 
-ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12 | SecurityProtocolType.Tls11 | SecurityProtocolType.Tls;
-ServicePointManager.ServerCertificateValidationCallback += 
-	(sender, cert, chain, sslPolicyErrors) => true;
+
 
 var domain = AppDomain.CurrentDomain;
 // Set a timeout interval of 5 seconds.
@@ -29,9 +28,12 @@ IConfiguration configuration = new ConfigurationBuilder()
     .Build();
 
 var builder = WebApplication.CreateBuilder(args);
+Roblox.Configuration.LocalDevelopment = configuration.GetValue<bool>("LocalDevelopment");
 
+Console.WriteLine("[Local] loading database schema");
 // DB
 Roblox.Services.Database.Configure(configuration.GetSection("Postgres").Value);
+Console.WriteLine("[Local] connecting cache");
 Roblox.Services.Cache.Configure(configuration.GetSection("Redis").Value);
 builder.Services.AddTransient<NpgsqlConnection>(provider => 
 {
@@ -82,7 +84,7 @@ Roblox.Configuration.RenderAuthorization = configuration.GetSection("Render:Auth
 Roblox.Configuration.BotAuthorization = configuration.GetSection("BotAuthorization").Value;
 // game-server config stuff
 IConfiguration gameServerConfig = new ConfigurationBuilder().AddJsonFile("game-servers.json").Build();
-Roblox.Configuration.GameServerIpAddresses = gameServerConfig.GetSection("GameServers").Get<IEnumerable<GameServerConfigEntry>>();
+Roblox.Configuration.GameServerIpAddresses = gameServerConfig.GetSection("GameServers").GetChildren().Select(c => new GameServerConfigEntry { ip = c["ip"] ?? "127.0.0.1", domain = c["domain"] ?? "localhost", maxServerCount = int.TryParse(c["maxServerCount"], out var count) ? count : 0 }).ToArray();
 Roblox.Configuration.RccAuthorization = configuration.GetSection("RccAuthorization").Value;
 Roblox.Configuration.AllowedQuietGetJson = configuration.GetSection("AllowedQuietGetJson").GetChildren().Select(c => c.Value);
 Roblox.Configuration.AssetValidationServiceUrl =
@@ -111,6 +113,12 @@ FeatureFlags.StartUpdateFlagTask();
 Roblox.Website.Filters.StaffFilter.Configure(long.Parse(configuration.GetSection("OwnerUserId").Value));
 // Roblox.Website.Controllers.ThumbnailsControllerV1.StartThumbnailFixLoop();
 
+if (Roblox.Configuration.LocalDevelopment)
+{
+    var keyPath = Path.Combine(Roblox.Configuration.StorageDirectory, "data-protection");
+    Directory.CreateDirectory(keyPath);
+    builder.Services.AddDataProtection().PersistKeysToFileSystem(new DirectoryInfo(keyPath));
+}
 // Add services to the container.
 builder.Services.AddRazorPages();
 builder.Services.AddScoped<AssetsService>();
@@ -151,6 +159,7 @@ builder.Services.AddMemoryCache();
 builder.Logging.ClearProviders();
 builder.Logging.AddConsole(); 
 builder.Logging.AddDebug();
+Console.WriteLine("[Local] constructing website");
 var app = builder.Build();
 
 // god this sucks
@@ -358,12 +367,12 @@ app.UseRobloxLoggingMiddleware();
 
 app.UseExceptionHandler("/error");
 // await CommandHandler.Configure("ws://localhost:3189", "hello world of deving 1234");
-CommandHandler.Configure(configuration.GetSection("Render:BaseUrl").Value, configuration.GetSection("Render:Authorization").Value);
+if (!Roblox.Configuration.LocalDevelopment) CommandHandler.Configure(configuration.GetSection("Render:BaseUrl").Value, configuration.GetSection("Render:Authorization").Value);
 
 SessionMiddleware.Configure(configuration.GetSection("Jwt:Sessions").Value);
 app.UseTimerMiddleware(); // Must always be last
 
-Task.Run(async () =>
+if (!Roblox.Configuration.LocalDevelopment) Task.Run(async () =>
 {
     using var db = new NpgsqlConnection(configuration.GetSection("Postgres").Value);
     await db.OpenAsync();
@@ -384,4 +393,5 @@ app.UseEndpoints(e =>
     e.MapRazorPages();
 });
 
+Console.WriteLine("[Local] starting HTTP listener");
 app.Run();
