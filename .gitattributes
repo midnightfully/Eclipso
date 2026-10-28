@@ -1,0 +1,9 @@
+# Files that run on the Linux server must keep LF line endings regardless of Windows checkout settings.
+*.sh            text eol=lf
+*.service       text eol=lf
+*.timer         text eol=lf
+deploy/**       text eol=lf
+deploy/**/*.png binary
+deploy/**/*.jpg binary
+api/sql/**      text eol=lf
+*.cmd           text eol=crlf

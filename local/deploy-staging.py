@@ -36,7 +36,7 @@ stage = ROOT / '.local/release' / release
 shutil.rmtree(stage, ignore_errors=True)
 def copy(src, dst, ignore=None):
     shutil.copytree(src, stage / dst, ignore=ignore, dirs_exist_ok=True)
-copy(pub, 'website', shutil.ignore_patterns('appsettings.json', 'game-servers.json', 'package-lock.json', '*.pdb'))
+copy(pub, 'website', shutil.ignore_patterns('appsettings.json', 'game-servers.json', 'package-lock.json', '*.pdb', '*.exe'))
 fe = ROOT / '2016-roblox-main'
 copy(fe / '.next-prod', 'frontend/.next-prod', shutil.ignore_patterns('cache'))
 copy(fe / 'public', 'frontend/public')
