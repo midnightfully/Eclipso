@@ -5,7 +5,7 @@
 set -euo pipefail
 REL=$1; SITE=$2
 [ -d "$REL/website" ] || { echo "no release at $REL"; exit 1; }
-PREV=$(readlink -f /opt/eclipso/current 2>/dev/null || true)
+PREV=""; [ -L /opt/eclipso/current ] && PREV=$(readlink -f /opt/eclipso/current)
 psqlq() { sudo -u postgres psql -d eclipso -v ON_ERROR_STOP=1 -qAt "$@"; }
 
 # 1. Database: backup, base schema on first deploy, then numbered migrations (each in one transaction).

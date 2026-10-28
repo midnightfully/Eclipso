@@ -10,6 +10,7 @@ WorkingDirectory=/opt/eclipso/current/website
 Environment=ECLIPSO_CONFIG_DIR=/etc/eclipso
 Environment=DOTNET_CLI_TELEMETRY_OPTOUT=1
 Environment=ASPNETCORE_ENVIRONMENT=Production
+Environment=ASPNETCORE_URLS=http://127.0.0.1:5080
 ExecStart=/usr/bin/dotnet /opt/eclipso/current/website/Roblox.Website.dll
 Restart=always
 RestartSec=5
