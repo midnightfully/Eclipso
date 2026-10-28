@@ -1,0 +1,50 @@
+[
+  {
+    "test": "Staging is private",
+    "result": "PASS",
+    "details": "staging refuses visitors without the staging password (401)"
+  },
+  {
+    "test": "Public pages render over HTTPS",
+    "result": "PASS",
+    "details": {
+      "/": 200,
+      "/login": 200,
+      "/catalog": 200,
+      "/info/revival": 200
+    }
+  },
+  {
+    "test": "Signup, login, Secure session cookie",
+    "result": "PASS",
+    "details": {
+      "userId": 2,
+      "session cookie": "Secure; HttpOnly",
+      "wrong password": "refused"
+    }
+  },
+  {
+    "test": "System account",
+    "result": "PASS",
+    "details": "user 1 Roblox with exact biography"
+  },
+  {
+    "test": "Test endpoints, Swagger, cross-site and admin are locked on the server",
+    "result": "PASS",
+    "details": {
+      "/local": 404,
+      "/local/state": 404,
+      "/swagger/index.html": 404,
+      "/swagger/v1/swagger.json": 404,
+      "cross-site POST": 403,
+      "/admin as normal user": "redirect"
+    }
+  },
+  {
+    "test": "Untrusted-content uploads are refused on the server",
+    "result": "PASS",
+    "details": {
+      "place upload": 400
+    }
+  }
+]
