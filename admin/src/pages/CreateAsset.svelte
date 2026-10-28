@@ -67,7 +67,7 @@
 			</div>
 		{:else}
 			<div class="col-12 mt-4 mb-4">
-				<label for="rbxm">.RBXM File</label>
+				<label for="rbxm">{assetTypeId === "1" ? "Image file (PNG or JPEG, max 2048x2048, 10 MB)" : ".RBXM File"}</label>
 				<input type="file" class="form-control" id="rbxm" required />
 			</div>
 		{/if}
