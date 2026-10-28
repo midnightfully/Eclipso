@@ -16,15 +16,26 @@ need to read the log yourself.
 
 ## A. Get into the admin panel (owner)
 
-1. Go to `http://127.0.0.1:5080/login`. Log in as **Midnight**.
-2. Go to `http://127.0.0.1:5080/admin/`.
-   - **Expected:** the admin panel loads, with a menu on the left.
-3. Click **Logs** (or go to `http://127.0.0.1:5080/admin/logs`).
-   - **Expected:** the list shows **ALL ADMIN ACTIONS (AUDIT)** first. You'll see an entry `SetOwner` that records
-     Midnight becoming owner, plus refused test attempts from my automated tests.
-4. **Check that ordinary users are blocked.** In a private window, create a normal account at
-   `http://127.0.0.1:5080/signup` (any new name, e.g. `KindTestBuyer1`). Then go to `http://127.0.0.1:5080/admin/`.
-   - **Expected:** you are sent to `/home`, and the panel never appears.
+**If the admin panel didn't work for you before:** the website had been stopped by my previous work session
+ending (now fixed), so pages couldn't load. Always start it yourself with **Start Website.cmd**. If you're unsure
+whether it's running, double-click **Check Website Status.cmd**. It should say `running: Ready`; if it says
+`Stopped`, run **Start Website.cmd** again.
+
+1. Go to `http://127.0.0.1:5080/login`. In the **white box on the right** (not the small bar at the top), type
+   `Midnight` and your password, then press **Log In**. You land on your Home page.
+   - On a narrow window the white box can sit off-screen to the right; maximise Opera GX (double-click its title bar).
+2. In the **left-hand menu** of the Home page, click **Admin** (near Groups and Forums). It only appears for staff
+   and the owner. You can also type `http://127.0.0.1:5080/admin/`.
+   - **Expected:** a dark menu on the left titled **Management** and a **Dashboard** with coloured boxes (users,
+     pending assets…). The top-right link says **Back to Eclipso**.
+   - **If you land on your Home page instead:** you are not logged in as Midnight, or the site was restarted before
+     this fix. Log in again and retry. If it still happens, send me a screenshot.
+3. In the admin menu open **Logs** (or `http://127.0.0.1:5080/admin/logs`).
+   - **Expected:** **ALL ADMIN ACTIONS (AUDIT)** is selected first, including a `SetOwner` row for Midnight.
+4. **Ordinary users are blocked:** in a private window (Ctrl+Shift+N) create a normal account at
+   `http://127.0.0.1:5080/signup` (e.g. `KindTestBuyer1`), then open `http://127.0.0.1:5080/admin/`.
+   - **Expected:** you are sent to `/home`; there is no Admin link in that account's menu.
+5. **Logins now survive restarts:** run Stop Website.cmd then Start Website.cmd; reload. You should still be logged in.
 
 ## B. Publish a normal item and buy it
 
@@ -34,7 +45,7 @@ Prepare a small **PNG or JPEG** picture (for example your Eclipso E logo). Limit
 2. Fill in:
    - **Name:** `[TEST] Kind Poster 1`
    - **Description:** anything
-   - **Type:** leave **Image**
+   - **Type:** leave **Image** (other types are greyed out: they need the game renderer, not set up yet)
    - **Image file:** choose your PNG
    - **Price:** `15`
    - Tick **For Sale** and **Visible**. Leave **Limited Status** at *Not Limited*.

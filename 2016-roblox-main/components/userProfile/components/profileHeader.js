@@ -127,10 +127,6 @@ const ProfileHeader = props => {
       name: 'Inventory',
       url: `/users/${store.userId}/inventory`,
     });
-    buttons.push({
-      name: 'Collectibles',
-      url: `https://collectibles.zawg.ca?user=${store.userId}`,
-    });
     if (!isOwnProfile) {
       buttons.push({
         name: 'Trade',

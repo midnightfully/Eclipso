@@ -25,11 +25,9 @@ const useFooterStyles = createUseStyles({
 });
 
 const footerLinks = {
-  '/about-us': 'About Us',
-  '/jobs': 'Jobs',
-  '/info/blog': 'Blog',
-  '/privacy': 'Privacy',
-  '/help': 'Help',
+  '/info/revival': 'About Eclipso',
+  '/info/revival#terms': 'Terms',
+  '/info/revival#privacy': 'Privacy',
 };
 
 const Footer = props => {
@@ -48,7 +46,7 @@ const Footer = props => {
         }
         <div className='col-12 col-lg-10 offset-lg-1'>
           <p className={`${s.text}`}>
-            ROBLOX, "Online Building Toy", characters, logos, names, and all related indicia are trademarks of <a href="https://corp.roblox.com"> ROBLOX Corporation</a>, ©2016. Patents pending. ROBLOX is not sponsored, authorized or endorsed by any producer of plastic building bricks, including The LEGO Group, MEGA Brands, and K'Nex, and no resemblance to the products of these companies is intended. Use of this site signifies your acceptance of the <a href='/terms-and-conditions'>Terms and Conditions</a>.
+            Eclipso is an independent community revival of the 2017 website style. It is not affiliated with, sponsored or endorsed by Roblox Corporation. Accounts, items and Robux on Eclipso exist only on Eclipso. Use of this site signifies your acceptance of the <a href='/info/revival#terms'>Eclipso terms</a> and <a href='/info/revival#privacy'>privacy information</a>.
           </p>
         </div>
       </div>

@@ -71,7 +71,6 @@ const NavigationLinks = props => {
         <LinkEntry url='games'>Games</LinkEntry>
         <LinkEntry url='catalog'>Catalog</LinkEntry>
         <LinkEntry url='develop'>Develop</LinkEntry>
-        <LinkEntry url='https://bt.zawg.ca/downloads'>Download</LinkEntry>
       </div>
     </div>
   </div>
