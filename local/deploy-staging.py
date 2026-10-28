@@ -65,6 +65,7 @@ print('package', tgz.name, round(tgz.stat().st_size / 1e6, 1), 'MB')
 with open(tgz, 'rb') as f:
     run(SSH + [f'cat > /tmp/{release}.tgz'], stdin=f)
 remote = f'''set -e
+sudo install -d -m 755 /opt/eclipso/releases
 sudo tar -xzf /tmp/{release}.tgz -C /opt/eclipso/releases && rm /tmp/{release}.tgz
 R=/opt/eclipso/releases/{release}
 {"sudo bash $R/deploy/provision.sh" if "--provision" in sys.argv else "true"}
