@@ -1,0 +1,104 @@
+[
+  {
+    "test": "Invalid uploads are refused with a useful message and create nothing",
+    "result": "PASS",
+    "details": {
+      "non-image": "400 {\"errors\":[{\"code\":0,\"message\":\"The file is not a readable image. Upload a PNG or JPEG",
+      "oversized": "400 {\"errors\":[{\"code\":0,\"message\":\"The image is 2100x2100; the maximum is 2048x2048 pixel",
+      "assets created": 0
+    }
+  },
+  {
+    "test": "Publish ordinary item: stored, thumbnail, catalog search, item details",
+    "result": "PASS",
+    "details": {
+      "assetId": 6,
+      "thumbnail": "/images/ead4b0073f78a35690590fbb21e2b814745578a806ed89a89bf494721b81d5d5.png",
+      "catalog search": "found",
+      "item details price": 10
+    }
+  },
+  {
+    "test": "Buy ordinary item: charge, creator credit, inventory and ledger agree",
+    "result": "PASS",
+    "details": {
+      "buyer charged": 10,
+      "creator credited": 7,
+      "inventory copies": 1,
+      "transactions": [
+        {
+          "type": 1,
+          "amount": 10
+        }
+      ]
+    }
+  },
+  {
+    "test": "Buying again is refused without a second charge",
+    "result": "PASS",
+    "details": "400 {\"errors\":[{\"code\":0,\"message\":\"Asset is already owned\"}]}"
+  },
+  {
+    "test": "Insufficient funds: refused, no ownership",
+    "result": "PASS",
+    "details": "400 {\"errors\":[{\"code\":0,\"message\":\"Not enough robux\"}]}"
+  },
+  {
+    "test": "Stale price is refused",
+    "result": "PASS",
+    "details": "400 {\"errors\":[{\"code\":0,\"message\":\"Price has changed\"}]}"
+  },
+  {
+    "test": "Metadata edit persists; off-sale item cannot be bought via direct API",
+    "result": "PASS",
+    "details": {
+      "metadata persisted": true,
+      "direct API buy of off-sale item": "400 {\"errors\":[{\"code\":0,\"message\":\"Item is no longer for sale\"}]}"
+    }
+  },
+  {
+    "test": "Limited unique: concurrent buyers, unique serials 1-3, sold out, losers not charged",
+    "result": "PASS",
+    "details": {
+      "5 simultaneous buyers for 3 copies": {
+        "72": "ok",
+        "73": "ok",
+        "71": "ok",
+        "75": "400 {\"errors\":[{\"code\":0,\"message\":\"This item is no longer for sale.\"}]}",
+        "74": "400 {\"errors\":[{\"code\":0,\"message\":\"This item is no longer for sale.\"}]}"
+      },
+      "serials": [
+        1,
+        2,
+        3
+      ],
+      "only owners charged": true,
+      "after sold out": "400 {\"errors\":[{\"code\":0,\"message\":\"Item is no longer for sale\"}]}"
+    }
+  },
+  {
+    "test": "Resale: owner-only listing, stale price refused, exact transfer, fee, no double sale",
+    "result": "PASS",
+    "details": {
+      "non-owner listing": "403 {\"errors\":[{\"code\":0,\"message\":\"Forb",
+      "stale listing price": "400 {\"errors\":[{\"code\":0,\"message\":\"The price has changed. Refresh to ",
+      "buyer -40 / seller +28 (30% fee)": true,
+      "serial kept": 3,
+      "old owner relist": "403 {\"errors\":[{\"code\":0,\"message\":\"Forb",
+      "buy completed listing again": "400 {\"errors\":[{\"code\":0,\"message\":\"That copy is no longer for sale. R",
+      "price history rows": [
+        {
+          "amount": 40
+        }
+      ]
+    }
+  },
+  {
+    "test": "Ledger snapshot",
+    "result": "PASS",
+    "details": {
+      "system account balance change": 16,
+      "note": "creator credits recorded per sale (70%)"
+    }
+  }
+]

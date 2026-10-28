@@ -1645,7 +1645,7 @@ public class UsersService : ServiceBase, IService
         return PurchaseAbuseFailureReason.Ok;
     }
 
-    public async Task PurchaseNormalItem(long userIdBuyer, long assetId, CurrencyType expectedCurrency)
+    public async Task PurchaseNormalItem(long userIdBuyer, long assetId, CurrencyType expectedCurrency, long? expectedPrice = null)
     {
         using var log = Writer.CreateWithId(LogGroup.ItemPurchase);
         // log.Info($"PurchaseNormalItem start. buyer={userIdBuyer} assetId={assetId}");
@@ -1659,7 +1659,7 @@ public class UsersService : ServiceBase, IService
         // Acquire a lock on the assetId before starting
         await using var redLock = await Cache.redLock.CreateLockAsync("PurchaseAsset:" + assetId, TimeSpan.FromSeconds(10));
         if (!redLock.IsAcquired)
-            throw new RobloxException(429, 0, "TooManyRequests");
+            throw new RobloxException(429, 0, "Many people are buying this item right now. You were not charged; please try again.");
         // log.Info($"got PurchaseAsset lock");
         
         await InTransaction(async _ =>
@@ -1704,6 +1704,9 @@ public class UsersService : ServiceBase, IService
 
             if (realPrice is < 0)
                 throw new InternalPurchaseFailureException(InternalPurchaseFailReason.AssetPriceLessThanZero);
+            // Re-checked under the purchase lock: the buyer is only ever charged the price they were shown.
+            if (expectedPrice != null && realPrice != expectedPrice)
+                throw new InternalPurchaseFailureException(InternalPurchaseFailReason.PriceChanged);
             
             if (balance < realPrice)
             {
@@ -1838,7 +1841,7 @@ public class UsersService : ServiceBase, IService
 		return 5;
 	}
 
-    public async Task PurchaseResellableItem(long userIdBuyer, long userAssetId)
+    public async Task PurchaseResellableItem(long userIdBuyer, long userAssetId, long? expectedPrice = null, long? expectedSellerId = null)
     {
         var log = Writer.CreateWithId(LogGroup.ItemPurchaseResale);
         // log.Info("PurchaseResellableItem start. buyer = {0} userAssetId = {1}", userIdBuyer, userAssetId);
@@ -1857,7 +1860,9 @@ public class UsersService : ServiceBase, IService
                 throw new InternalPurchaseFailureException(InternalPurchaseFailReason.UserAssetBuyerAndSellerAreSame);
             if (userAsset.price < 1)
                 throw new InternalPurchaseFailureException(InternalPurchaseFailReason.UserAssetPriceIsLessThanOne);
-            // log.Info("price = {0} sellerId = {1}", userAsset.price, userAsset.userId);
+            // Re-checked under the lock: the listing must still be the one the buyer saw.
+            if ((expectedPrice != null && userAsset.price != expectedPrice) || (expectedSellerId != null && userAsset.userId != expectedSellerId))
+                throw new InternalPurchaseFailureException(InternalPurchaseFailReason.PriceChanged);
             var copies = await GetUserAssets(userIdBuyer, userAsset.assetId);
 
             var maxPossibleCopies = await GetMaximumCopyCount(userAsset.assetId);
@@ -1874,13 +1879,20 @@ public class UsersService : ServiceBase, IService
             if (expectedBuyerBalanceAfterSale < 0)
                 throw new InternalPurchaseFailureException(InternalPurchaseFailReason.BalanceWouldBeLessThanZeroAfterSale);
             var transactionStartTime = DateTime.UtcNow;
-            // Transfer the item
-            await UpdateAsync("user_asset", userAsset.userAssetId, new
-            {
-                price = 0,
-                user_id = userIdBuyer,
-                updated_at = transactionStartTime,
-            });
+            // Transfer the item. Conditional on the seller and listing price still matching, so a copy can
+            // only change hands once even if the distributed lock was lost; otherwise the transaction rolls back.
+            var transferred = await db.ExecuteAsync(
+                "UPDATE user_asset SET price = 0, user_id = :buyer, updated_at = :now WHERE id = :id AND user_id = :seller AND price = :price",
+                new
+                {
+                    buyer = userIdBuyer,
+                    now = transactionStartTime,
+                    id = userAsset.userAssetId,
+                    seller = userAsset.userId,
+                    price = userAsset.price,
+                });
+            if (transferred != 1)
+                throw new InternalPurchaseFailureException(InternalPurchaseFailReason.PriceChanged);
             // log.Info("userAsset marked as no longer for sale");
             // Subtract balance from buyer
             await ec.DecrementCurrency(CreatorType.User, userIdBuyer, CurrencyType.Robux, userAsset.price);

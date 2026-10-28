@@ -3499,7 +3499,19 @@ Thank you for your understanding,
 		}
 
 		Stream? file = null;
-		if (request.rbxm != null)
+		if (request.rbxm != null && request.assetTypeId == Type.Image)
+		{
+			// Images used to be stored unchecked. Accept only real PNG/JPEG and store a re-encoded PNG.
+			try
+			{
+				file = await Roblox.Libraries.Imager.SanitizeToPngAsync(request.rbxm.OpenReadStream(), 2048, 10 * 1024 * 1024);
+			}
+			catch (Roblox.Libraries.ImageRejectedException e)
+			{
+				throw new BadRequestException(0, e.Message);
+			}
+		}
+		else if (request.rbxm != null)
 		{
 			var fileData = request.rbxm.OpenReadStream();
 			
@@ -3560,6 +3572,20 @@ Thank you for your understanding,
 				"months" => DateTime.UtcNow.AddMonths(offsetValue),
 				_ => throw new StaffException("Invalid time unit specified")
 			};
+		}
+
+		// The thumbnail is made before price/visibility/sale are applied, so a failure here leaves an
+		// off-sale item rather than a "for sale" item with no picture.
+		if (request.assetTypeId == Type.Image)
+		{
+			try
+			{
+				await services.assets.CreateImageThumbnail(assetDetails.assetId, ModerationStatus.ReviewApproved);
+			}
+			catch (Exception e)
+			{
+				throw new StaffException($"Asset {assetDetails.assetId} was stored but its thumbnail failed ({e.Message}). It is not on sale; retry from Update Product.");
+			}
 		}
 
 		await services.assets.SetItemPrice(assetDetails.assetId, request.price, null);

@@ -100,30 +100,32 @@ public class EconomyControllerV1 : ControllerBase
             throw new BadRequestException(0, "assetId does not match provided assetId");
         // Confirm the user is not trying to buy their own item
         if (userAsset.userId == safeUserSession.userId)
-            throw new BadRequestException(0, "BadRequest");
+            throw new BadRequestException(0, "You cannot buy your own listing.");
         // Check item data
         var itemData = await services.assets.GetAssetCatalogInfo(assetId);
         // Confirm item is limited
         if (!itemData.itemRestrictions.Contains("Limited") && !itemData.itemRestrictions.Contains("LimitedUnique"))
-            throw new Exception("Cannot purchase non-limited and non limited-unique item");
+            throw new BadRequestException(0, "Only limited items can be bought from resellers.");
         // If item is still for sale, it cannot be re-sold/purchased yet
         if (itemData.isForSale)
-            throw new Exception("Item is still for sale");
+            throw new BadRequestException(0, "This item is still on its first sale; buy it from the item page.");
         // If the price of the item does not match the price the requester expected, inform them the price changed
-        if (userAsset.price == 0 || userAsset.price != request.expectedPrice)
-            throw new Exception("Price has changed");
+        if (userAsset.price == 0)
+            throw new BadRequestException(0, "That copy is no longer for sale. Refresh to see current resellers.");
+        if (userAsset.price != request.expectedPrice)
+            throw new BadRequestException(0, "The price has changed. Refresh to see the current price.");
         // If the seller has changed, inform them the seller changed.
         // I'm not really sure how useful this is, but it's what Roblox does, so I'll leave it
         if (userAsset.userId != request.expectedSellerId)
-            throw new Exception("Seller has changed");
+            throw new BadRequestException(0, "That copy has a new owner. Refresh to see current resellers.");
         // Check if buyer has enough currency
         // Accuracy is not too important since this is re-checked anyway
         var buyerCurrency = await services.economy.GetUserRobux(safeUserSession.userId);
         // If user does not have enough money, they can't buy the item!
         if (buyerCurrency < userAsset.price)
-            throw new BadRequestException(0, "BadRequest");
+            throw new BadRequestException(0, "You do not have enough Robux. You were not charged.");
         // All validation logic seems to be complete. Let's do the actual transaction.
-        await services.users.PurchaseResellableItem(safeUserSession.userId, userAsset.userAssetId);
+        await services.users.PurchaseResellableItem(safeUserSession.userId, userAsset.userAssetId, request.expectedPrice, request.expectedSellerId);
     }
 
     private async Task PurchaseNormalItem(long assetId, PurchaseRequest request)
@@ -197,7 +199,7 @@ public class EconomyControllerV1 : ControllerBase
         }
         
         // Everything seems ok now, so purchase the item
-        await services.users.PurchaseNormalItem(safeUserSession.userId, assetId, request.expectedCurrency);
+        await services.users.PurchaseNormalItem(safeUserSession.userId, assetId, request.expectedCurrency, request.expectedPrice);
     }
 
     /// <summary>
@@ -226,21 +228,21 @@ public class EconomyControllerV1 : ControllerBase
                     "You cannot purchase 18+ items until you confirm you are 18 or over.");
         }
         
-        if (request.userAssetId != null)
+        try
         {
-            // User is making UAID purchase
-            await PurchaseResellableItem(assetId, request);
-            // Update sellers avatar in background (in case they were wearing the item they sold)
-            Task.Run(async () =>
-            {
-                using var avatarService = ServiceProvider.GetOrCreate<AvatarService>();
-                await avatarService.RedrawAvatar(request.expectedSellerId);
-            });
+            await PurchaseByType(assetId, request);
         }
-        else
+        catch (InternalPurchaseFailureException e)
         {
-            // User is making normal purchase
-            await PurchaseNormalItem(assetId, request);
+            throw new BadRequestException(0, PurchaseFailureMessage(e.reason));
+        }
+        catch (Npgsql.PostgresException e) when (e.SqlState is "23505" or "23514")
+        {
+            // Database constraints (unique serial, non-negative balance) rejected a racing purchase.
+            // The whole transaction rolled back, so nothing was charged or granted.
+            throw new BadRequestException(0, e.SqlState == "23505"
+                ? "Someone else bought that copy at the same moment. You were not charged. Please try again."
+                : "You do not have enough Robux. You were not charged.");
         }
 
         stopwatch.Stop();
@@ -262,6 +264,41 @@ public class EconomyControllerV1 : ControllerBase
             transactionVerb = "bought",
             isMultiPrivateSale = false,
         };
+    }
+
+    private static string PurchaseFailureMessage(InternalPurchaseFailReason reason) => reason switch
+    {
+        InternalPurchaseFailReason.UserAlreadyOwnsBeforePurchase => "You already own this item.",
+        InternalPurchaseFailReason.AssetDoesNotExist => "This item does not exist.",
+        InternalPurchaseFailReason.AssetNotForSale or InternalPurchaseFailReason.AssetExpired
+            or InternalPurchaseFailReason.AssetPriceIsNull => "This item is no longer for sale.",
+        InternalPurchaseFailReason.AssetStockExhausted => "This item is sold out.",
+        InternalPurchaseFailReason.BalanceLessThanPrice or InternalPurchaseFailReason.BalanceWouldBeLessThanZeroAfterSale
+            => "You do not have enough Robux. You were not charged.",
+        InternalPurchaseFailReason.PriceChanged => "The price has changed. Refresh the page to see the current price.",
+        InternalPurchaseFailReason.UserAssetBuyerAndSellerAreSame => "You cannot buy your own listing.",
+        InternalPurchaseFailReason.UserWouldExceedMaximumCopiesIfPurchased => "You already own the maximum number of copies.",
+        _ => "This purchase could not be completed. You were not charged.",
+    };
+
+    private async Task PurchaseByType(long assetId, PurchaseRequest request)
+    {
+        if (request.userAssetId != null)
+        {
+            // User is making UAID purchase
+            await PurchaseResellableItem(assetId, request);
+            // Update sellers avatar in background (in case they were wearing the item they sold)
+            Task.Run(async () =>
+            {
+                using var avatarService = ServiceProvider.GetOrCreate<AvatarService>();
+                await avatarService.RedrawAvatar(request.expectedSellerId);
+            });
+        }
+        else
+        {
+            // User is making normal purchase
+            await PurchaseNormalItem(assetId, request);
+        }
     }
 
     [HttpGet("assets/{assetId:long}/resellers")]

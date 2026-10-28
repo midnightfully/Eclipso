@@ -70,6 +70,7 @@ namespace Roblox.Models.Economy
         UserAssetPriceIsLessThanOne,
         BalanceWouldBeLessThanZeroAfterSale,
         UserWouldExceedMaximumCopiesIfPurchased,
+        PriceChanged,
     }
     
     public class InternalPurchaseFailureException : Exception

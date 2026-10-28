@@ -94,8 +94,9 @@ public class ErrorController : ControllerBase
             });
         }
 #if DEBUG
-        var firstError = errorList.First();
-        firstError.message = firstError.message + "\n" + exception?.Message + "\n" + exception?.StackTrace;
+        // Keep user-facing messages clean (the website shows them); details go to .local/website.log.
+        Console.WriteLine("[debug] {0} {1} -> {2}: {3}\n{4}", HttpContext.Request.Method,
+            (context as IExceptionHandlerPathFeature)?.Path, (int)code, exception?.Message, exception?.StackTrace);
 #endif
 
         HttpContext.Response.StatusCode = (int)code;

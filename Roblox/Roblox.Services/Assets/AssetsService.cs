@@ -805,16 +805,23 @@ public class AssetsService : ServiceBase, IService
             ModerationStatus.AwaitingApproval);
     }
 
-    private async Task CreateRawImageThumbnail(long assetId, CancellationToken? cancellationToken = null)
+    private async Task CreateRawImageThumbnail(long assetId, CancellationToken? cancellationToken = null,
+        ModerationStatus status = ModerationStatus.AwaitingApproval)
     {
         var latestVersion = await GetLatestAssetVersion(assetId);
         if (latestVersion.contentUrl == null)
             throw new Exception("Latest asset version has no contentUrl");
         var thumbnailToUse = await GetAssetContent(latestVersion.contentUrl);
         var key = await UploadAssetContent(thumbnailToUse, Configuration.ThumbnailsDirectory, "png");
-        await InsertOrReplaceThumbnail(assetId, latestVersion.assetVersionId, key,
-            ModerationStatus.AwaitingApproval);
+        await InsertOrReplaceThumbnail(assetId, latestVersion.assetVersionId, key, status);
     }
+
+    /// <summary>
+    /// Thumbnail for an Image asset: the stored picture itself (already re-encoded as PNG at upload).
+    /// Does not need the game renderer.
+    /// </summary>
+    public Task CreateImageThumbnail(long assetId, ModerationStatus status) =>
+        CreateRawImageThumbnail(assetId, null, status);
 
 	private async Task CreateClothingThumbnail(long assetId, Models.Assets.Type assetType, CancellationToken? cancellationToken = null)
 	{
