@@ -44,9 +44,9 @@ export default function ClassicLanding({ loginOnly = false }) {
     } catch (e) { setError(e.message); setBusy(false); }
   }
   return <div className={styles.page}>
-    <Head><title>{loginOnly ? 'Log In' : 'Sign Up'} · 2017 Revival</title><meta name="description" content="An independent revival of the 2017 Roblox website." /></Head>
+    <Head><title>{loginOnly ? 'Log In' : 'Sign Up'} · Eclipso</title><meta name="description" content="Eclipso, an independent community revival of the 2017 website style. Not affiliated with Roblox Corporation." /></Head>
     <header className={styles.topbar}><div className={styles.topinner}>
-      <nav aria-label="Main navigation"><a className={styles.mark} href="/" aria-label="Home"/><a href="#play">Play</a><a href="#about">About</a><a href="#platforms">Platforms</a></nav>
+      <nav aria-label="Main navigation"><a className={styles.mark} href="/" aria-label="Eclipso home"><img src="/img/eclipso/eclipso-e.png" alt="" onError={e=>{e.currentTarget.hidden=true;}}/></a><a href="#play">Play</a><a href="#about">About</a><a href="#platforms">Platforms</a></nav>
       <form className={styles.quickLogin} onSubmit={e=>submit(e,false)} aria-label="Quick login">
         <input name="username" placeholder="Username" aria-label="Login username" autoComplete="username" required disabled={busy}/>
         <input name="password" type="password" placeholder="Password" aria-label="Login password" autoComplete="current-password" required disabled={busy}/>
@@ -54,7 +54,7 @@ export default function ClassicLanding({ loginOnly = false }) {
       </form>
     </div></header>
     <main id="play" className={styles.hero}><div className={styles.heroInner}>
-      <div className={styles.brand}><img src="/img/roblox_logo.svg" alt="ROBLOX"/><p>Powering Imagination<sup>™</sup></p><span className={styles.revival}>an independent 2017 revival</span></div>
+      <div className={styles.brand}><img className={styles.logo} src="/img/eclipso/eclipso-logo.png" alt="Eclipso" onError={e=>{e.currentTarget.hidden=true;e.currentTarget.nextSibling.hidden=false;}}/><p className={styles.wordmark} role="img" aria-label="Eclipso" hidden><span aria-hidden="true">ECLIPS</span><span aria-hidden="true" className={styles.squareO}/></p><p>Rediscover Imagination</p><span className={styles.revival}>an independent 2017 revival</span></div>
       <section className={styles.panel} aria-labelledby="signup-title">
         <h1 id="signup-title">{loginOnly ? 'LOG IN AND START HAVING FUN!' : 'SIGN UP AND START HAVING FUN!'}</h1>
         <form onSubmit={e=>submit(e,!loginOnly)}>
@@ -73,9 +73,9 @@ export default function ClassicLanding({ loginOnly = false }) {
           <p className={styles.alternate}>{loginOnly ? <>New here? <a href="/">Create an account</a></> : <>Already have an account? <a href="/login">Log in</a></>}</p>
         </form>
       </section>
-    </div><p className={styles.credit}>Game: ROBLOX Point · Developer: StarMarine614</p></main>
-    <section id="about" className={styles.about}><h2>Build friendships. Rediscover 2017.</h2><p>Create your revival account, meet friends, start a group and explore the catalog.</p><p>This is an independent community project, not the official Roblox service. Accounts and currency belong to this revival.</p></section>
+    </div></main>
+    <section id="about" className={styles.about}><h2>Build friendships. Rediscover 2017.</h2><p>Create your revival account, meet friends, start a group and explore the catalog.</p><p>Eclipso is an independent community project. It is not the official Roblox service and is not affiliated with Roblox Corporation. Accounts and currency belong to Eclipso.</p></section>
     <section id="platforms" className={styles.platforms}><h2>Start in your browser</h2><p>The website is available for desktop browsers. Game clients and multiplayer are still in development.</p><a href="/catalog">Explore the catalog</a></section>
-    <footer className={styles.footer}><a href="/info/revival">About this revival</a><a href="/info/revival#privacy">Privacy</a><a href="/info/revival#terms">Terms</a><span>2017 Revival</span></footer>
+    <footer className={styles.footer}><a href="/info/revival">About this revival</a><a href="/info/revival#privacy">Privacy</a><a href="/info/revival#terms">Terms</a><span>Eclipso · 2017 Revival</span></footer>
   </div>;
 }

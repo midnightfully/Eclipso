@@ -186,6 +186,13 @@ public class FrontendProxyMiddleware
 			requestUrl = fixedUrl;
 		}
 
+		// The proxy only performs GET requests against the frontend; anything else belongs to the backend.
+		if (!HttpMethods.IsGet(ctx.Request.Method) && !HttpMethods.IsHead(ctx.Request.Method))
+		{
+			await _next(ctx);
+			return;
+		}
+
 		foreach (var item in BypassUrls)
 		{
 			if (requestUrl.ToLower().StartsWith(item))

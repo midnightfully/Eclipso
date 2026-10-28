@@ -10,7 +10,11 @@ namespace Roblox.Website.Controllers
 {
     public class BypassConfiguration
     {
-        public static void AddToBypass(string template)
+        /// <param name="proxyBypass">
+        /// False for POST-only routes. The frontend proxy only serves GET/HEAD, so a POST-only route
+        /// must not hide a frontend page that shares its path (e.g. POST /login vs the /login page).
+        /// </param>
+        public static void AddToBypass(string template, bool proxyBypass = true)
         {
             if (!FrontendProxyMiddleware.BypassUrls.Contains(template))
             {
@@ -27,7 +31,7 @@ namespace Roblox.Website.Controllers
 
                 toAdd = toAdd.ToLower();
                 Console.WriteLine("[info] add to bypass {0}", toAdd);
-                FrontendProxyMiddleware.BypassUrls.Add(toAdd);
+                if (proxyBypass) FrontendProxyMiddleware.BypassUrls.Add(toAdd);
                 ApplicationGuardMiddleware.allowedUrls.Add(toAdd);
                 CsrfMiddleware.bypassUrls.Add(toAdd);
             }
@@ -103,7 +107,7 @@ namespace Roblox.Website.Controllers
             {
                 throw new ArgumentNullException(nameof(template));
             }
-            BypassConfiguration.AddToBypass(template);
+            BypassConfiguration.AddToBypass(template, proxyBypass: false);
         }
     }
 }

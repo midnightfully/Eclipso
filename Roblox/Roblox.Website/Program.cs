@@ -226,12 +226,8 @@ app.Use(async (context, next) =>
     await next();
 });
 
-app.UseDefaultFiles(new DefaultFilesOptions
-{
-    FileProvider = datafolder,
-    RequestPath = "",
-    DefaultFileNames = new List<string> { "index.html" }
-});
+// The logged-out landing page at "/" is the 2017 page rendered by the Next frontend
+// (2016-roblox-main/pages/index.js), so the upstream static Data/index.html is no longer served as a default file.
 
 app.UseStaticFiles(new StaticFileOptions
 {

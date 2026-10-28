@@ -97,3 +97,6 @@ Roblox/Roblox.Website/game-servers.json
 
 # Independent verification build output
 /2016-roblox-main/.next-check/
+
+# Third-party artwork with unverified licensing; never publish (see docs/ASSET-PROVENANCE.md)
+/2016-roblox-main/public/img/revival/coaster.jpg

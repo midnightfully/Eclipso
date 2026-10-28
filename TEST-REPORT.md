@@ -61,3 +61,24 @@ Microsoft Garnet 2.2.4 provides the Redis protocol cache with Lua enabled; the d
 - Two obsolete fixed-balance scripts were archived. local/verify-persisted.py now supports capture then verify against an actual recorded baseline, avoiding hardcoded balances. That new capture/verify workflow has not itself been run through another full restart.
 
 No browser screenshots, complete 2017 appearance, 3D item readiness, public deployment, or multiplayer success are claimed by these API results.
+
+## Startup recovery and routing — 2026-10-28 (Claude)
+
+| Check | Type | Result | Evidence / notes |
+|---|---|---|---|
+| Leftover processes before start | Inspection | None on 5080/3000/15432/16379 | PostgreSQL log shows clean shutdown at 22:07 on 27 Oct |
+| Cause of 27 Oct startup failure | Log analysis | Identified | Unclean PG shutdown → crash recovery; first Npgsql query exceeded 30 s command timeout; no retry. `Database.Configure` now retries with a 120 s timeout |
+| Launcher stale-status bug | Code fix | Fixed, not separately re-triggered | Start script exited on the previous run's `error` status while the real supervisor kept starting |
+| Backup before changes | Manual | PASS | `.local/backups/before-claude-20261028-124508.dump` (98 tables) + storage archive |
+| Supervisor start → stop → rebuild → start (×3) | Manual | PASS | ~1–2 min to Ready; stop reported "All local services stopped" |
+| Backend build | Build | PASS: 0 errors, 423 warnings | `.local/backend-build.log` |
+| Account integration tests (`local/test-signup-2017.py`) | API + HTTP | **10/10 PASS** (run 3 times) | Validation rejections, register, session, login, case-insensitive duplicate, public pages |
+| `/` served old BUBBABLOX static page | Bug | Fixed | Removed `UseDefaultFiles` for `api/public/Data/index.html` |
+| `GET /login` returned 405 | Bug | Fixed | POST-only routes no longer bypass the frontend proxy; non-GET requests never go to the proxy. Legacy `POST /login` still reaches backend (302) |
+| Logged-in `/` → `/home` redirect | HTTP | PASS | |
+| Content-Security-Policy blocked all local images | Browser | Fixed | Policy trusted only bbblox.org/zawg.ca. Now `'self'` + configured CDN; added object-src/base-uri/frame-ancestors; HSTS `preload` removed |
+| Landing page renders in browser | Browser (built-in, 1366 px) | PASS (visual) | Form submit through the browser not yet exercised |
+| Logged-out `/home` | Browser | **FAIL** | Empty page; should redirect to signup |
+| Session survives website restart | Browser | **UNVERIFIED** | A browser session was signed out after a restart; needs an API persistence test |
+
+Security findings logged for the audit (not yet fixed): `HttpGetBypass`/`HttpPostBypass` register routes as **prefixes** in the CSRF and application-guard bypass lists (e.g. `/users/`, `/asset`, `/login`), exempting whole URL trees from CSRF checks.

@@ -102,14 +102,16 @@ else:
  if ready():print('Ready: http://127.0.0.1:5080/local',flush=True);raise SystemExit(0)
  try:s=json.loads((STATE/'status.json').read_text());recent=time.time()-s['updated']<15 and s['state']=='starting'
  except Exception:recent=False
+ launched=time.time()
  if not recent:
   log=open(STATE/'supervisor.log','ab',buffering=0)
   subprocess.Popen([sys.executable,__file__,'--hold'],cwd=ROOT,env=ENV,stdout=log,stderr=log,stdin=subprocess.DEVNULL,creationflags=FLAGS)
  print('Starting the website. The first startup may take a few minutes...',flush=True)
- for _ in range(300):
+ for _ in range(600):
   if ready():print('Ready: open http://127.0.0.1:5080/local in Opera GX',flush=True);break
   try:s=json.loads((STATE/'status.json').read_text())
   except Exception:s={}
-  if s.get('state')=='error':raise SystemExit(s['message'])
+  # Ignore an error left over from a previous run; only report errors written after this launch.
+  if s.get('state')=='error' and s.get('updated',0)>=launched-1:raise SystemExit(s['message'])
   time.sleep(1)
  else:raise SystemExit('Startup timed out. See .local/status.json and .local logs.')

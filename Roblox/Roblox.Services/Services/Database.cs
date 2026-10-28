@@ -44,8 +44,29 @@ public static class Database
     {
         dbConnectionString = databaseConnectionString;
 
-        using var db = new NpgsqlConnection(dbConnectionString);
-        var columns = db.Query("SELECT table_name, column_name FROM information_schema.columns WHERE table_schema = 'public' AND table_catalog = current_database() ORDER BY table_name, ordinal_position");
+        // The first query after PostgreSQL starts (especially after crash recovery) can be slow
+        // while Npgsql loads the type catalog. Retry with a generous timeout instead of crashing.
+        var startupConnectionString = new NpgsqlConnectionStringBuilder(dbConnectionString)
+        {
+            Timeout = 30,
+            CommandTimeout = 120,
+            Pooling = false,
+        }.ConnectionString;
+        List<dynamic> columns = null!;
+        for (var attempt = 1; ; attempt++)
+        {
+            try
+            {
+                using var db = new NpgsqlConnection(startupConnectionString);
+                columns = db.Query("SELECT table_name, column_name FROM information_schema.columns WHERE table_schema = 'public' AND table_catalog = current_database() ORDER BY table_name, ordinal_position", commandTimeout: 120).ToList();
+                break;
+            }
+            catch (Exception e) when (attempt < 6 && (e is NpgsqlException || e is TimeoutException))
+            {
+                Console.WriteLine($"[Database] schema load attempt {attempt} failed ({e.GetType().Name}); retrying");
+                Thread.Sleep(TimeSpan.FromSeconds(5 * attempt));
+            }
+        }
         tableNames.Clear();
         tableToColumnMap.Clear();
         foreach (var column in columns)
