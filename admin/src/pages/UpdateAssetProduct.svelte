@@ -234,9 +234,9 @@
 											return;
 										}
 										
-										offsaleDeadline = new {
-											value = offset,
-											unit = offsaleOffsetUnit
+										offsaleDeadline = {
+											value: offset,
+											unit: offsaleOffsetUnit
 										};
 									}
 
@@ -251,14 +251,16 @@
                                             isLimitedUnique = true;
                                         }
                                     }
-                                    let maxSerial = getElementById("max-copies").value || null;
-                                    if (getElementById("max-copies")) {
-                                        let maxSerial = getElementById("max-copies").value;
-                                        if (Number.isSafeInteger(parseInt(maxSerial, 10))) {
-                                            maxSerial = parseInt(maxSerial, 10);
-                                        }else{
-                                            maxSerial = null;
+                                    // Send a number or null; the server rejects text values.
+                                    let maxSerial = null;
+                                    const maxCopiesText = (getElementById("max-copies")?.value ?? "").trim();
+                                    if (maxCopiesText) {
+                                        const parsed = parseInt(maxCopiesText, 10);
+                                        if (!Number.isSafeInteger(parsed) || parsed <= 0 || String(parsed) !== maxCopiesText) {
+                                            errorMessage = "Max copy count must be a whole number greater than zero";
+                                            return;
                                         }
+                                        maxSerial = parsed;
                                     }
                                     let price = getElementById("priceRobux").value;
                                     if (Number.isSafeInteger(parseInt(price, 10))) {

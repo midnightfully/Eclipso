@@ -1,0 +1,60 @@
+[
+  {
+    "test": "Logged-out visitor cannot open admin page or API",
+    "result": "PASS",
+    "details": {
+      "admin page": [
+        302,
+        "/home"
+      ],
+      "admin api": 403
+    }
+  },
+  {
+    "test": "Normal user is refused by the server (page redirect, API 403)",
+    "result": "PASS",
+    "details": {
+      "page /admin/": 302,
+      "GET stats": 403,
+      "GET audit log": 403,
+      "POST give permission to self": 403,
+      "GET pending asset image (was unguarded)": 403,
+      "GET lottery users (was unguarded)": 403
+    }
+  },
+  {
+    "test": "Refused self-promotion did not change the database",
+    "result": "PASS",
+    "details": "normal user still has 0 staff permissions"
+  },
+  {
+    "test": "Staff opens panel; per-permission checks still apply",
+    "result": "PASS",
+    "details": {
+      "page": 200,
+      "stats": 200,
+      "permission it lacks": 403
+    }
+  },
+  {
+    "test": "Role management is owner-only",
+    "result": "PASS",
+    "details": "staff holding SetPermissions cannot grant others or itself (owner-only), DB unchanged"
+  },
+  {
+    "test": "Denied attempts are recorded in the audit trail and visible to staff",
+    "result": "PASS",
+    "details": {
+      "new audit rows": 9,
+      "visible in admin Logs page API": true
+    }
+  },
+  {
+    "test": "Logout ends admin access",
+    "result": "PASS",
+    "details": {
+      "after logout page": 302,
+      "api": 403
+    }
+  }
+]

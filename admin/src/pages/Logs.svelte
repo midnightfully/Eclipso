@@ -19,7 +19,7 @@
 			});
 	}
 
-	let logType = "ban";
+	let logType = "audit";
 </script>
 
 <svelte:head>
@@ -43,6 +43,7 @@
 						offset = 0;
 					}}
 				>
+					<option value="audit">ALL ADMIN ACTIONS (AUDIT)</option>
 					<option value="ban">BAN</option>
 					<option value="unban">UNBAN</option>
 					<option value="robux">ROBUX</option>

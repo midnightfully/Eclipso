@@ -54,6 +54,7 @@ namespace Roblox.Website.Controllers;
 
 [ApiController]
 [Route("/admin-api/api/")]
+[AdminAuditFilter]
 #if RELEASE
 [ApiExplorerSettings(IgnoreApi = true)]
 #endif
@@ -146,6 +147,20 @@ public class AdminApiController : ControllerBase
         };
     }
 
+    /// <summary>
+    /// Permission changes are owner-only, even for staff granted SetPermissions, so staff cannot escalate
+    /// themselves. The owner's own access comes from configuration, and user 1 is the automated system account.
+    /// </summary>
+    private void AssertCanManagePermissions(long targetUserId)
+    {
+        if (!StaffFilter.IsOwner(userSession.userId))
+            throw new ForbiddenException(0, "Only the site owner can change staff permissions");
+        if (targetUserId == userSession.userId)
+            throw new ForbiddenException(0, "You cannot change your own permissions");
+        if (targetUserId == 1)
+            throw new ForbiddenException(0, "The system account (user 1) cannot be given staff permissions");
+    }
+
     [HttpGet("staff/list"), StaffFilter(Access.SetPermissions)]
     public async Task<IEnumerable<UserId>> GetAllStaff()
     {
@@ -167,15 +182,17 @@ public class AdminApiController : ControllerBase
     [HttpPost("staff/permissions"), StaffFilter(Access.SetPermissions)]
     public async Task SetUserPermissions(long userId, Access permission)
     {
-/*         if (!StaffFilter.IsOwner(userSession.userId))
-            throw new Exception("InternalServerError"); */
-
+        AssertCanManagePermissions(userId);
+        if (!Enum.IsDefined(permission))
+            throw new BadRequestException(0, "Unknown permission");
+        await services.users.GetUserById(userId); // throws if the user does not exist
         await services.users.AddStaffPermission(userId, permission);
     }
 
     [HttpDelete("staff/permissions"), StaffFilter(Access.SetPermissions)]
     public async Task DeletePermission(long userId, Access permission)
     {
+        AssertCanManagePermissions(userId);
         await services.users.RemoveStaffPermission(userId, permission);
     }
 
@@ -505,7 +522,7 @@ public class AdminApiController : ControllerBase
         throw new StaffException("Unsupported action");
     }
 	
-	[HttpGet("assets/pending-assets/image/{contentUrl}")]
+	[HttpGet("assets/pending-assets/image/{contentUrl}"), StaffFilter(Access.GetPendingModerationItems)]
 	public async Task<IActionResult> GetPendingImage(string contentUrl)
 	{
 		// for security as anyone could do path traversal
@@ -539,7 +556,7 @@ public class AdminApiController : ControllerBase
 		}
 	}	
 	
-	[HttpGet("assets/pending-assets/mesh/{contentUrl}.obj")]
+	[HttpGet("assets/pending-assets/mesh/{contentUrl}.obj"), StaffFilter(Access.GetPendingModerationItems)]
 	public async Task<IActionResult> GetMeshOBJ(string contentUrl)
 	{
 		// for security as anyone could do path traversal
@@ -1779,6 +1796,18 @@ public class AdminApiController : ControllerBase
         
         switch (logType)
         {
+            case "audit":
+            {
+                // Central trail written by AdminAuditFilter: every admin change attempt and every denied admin request.
+                var result = await db.QueryAsync(
+                    "SELECT l.id, l.created_at, l.actor_user_id, u.username AS actor_username, l.method, l.action, l.path, l.parameters::text AS parameters, l.status_code, l.outcome FROM admin_audit_log l LEFT JOIN \"user\" u ON u.id = l.actor_user_id ORDER BY l.id DESC LIMIT :limit OFFSET :offset",
+                    new { limit, offset });
+                return new
+                {
+                    data = result,
+                    columns = new[] { "#", "Date", "ActorID", "Actor", "Method", "Action", "Path", "Parameters", "Status", "Outcome" },
+                };
+            }
             case "ban":
             {
                 var result = await db.QueryAsync(
@@ -2703,7 +2732,7 @@ Thank you for your understanding,
         };
     }
 
-	[HttpGet("lottery/get-users-eligible")]
+	[HttpGet("lottery/get-users-eligible"), StaffFilter(Access.RunLottery)]
 	public async Task<IEnumerable<UserLotteryEntry>> GetEligibleLotteryUsers()
 	{
 		var eligibleUsers = await db.QueryAsync<UserLotteryEntry>(
@@ -2718,7 +2747,7 @@ Thank you for your understanding,
 		return eligibleUsers;
 	}
 
-	[HttpGet("lottery/get-items")]
+	[HttpGet("lottery/get-items"), StaffFilter(Access.RunLottery)]
 	public async Task<IEnumerable<LotteryItemEntry>> GetLotteryItems()
 	{
 		var log = Writer.CreateWithId(LogGroup.Lottery);
