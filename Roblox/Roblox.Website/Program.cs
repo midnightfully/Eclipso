@@ -229,15 +229,8 @@ app.Use(async (context, next) =>
 
     path = path.TrimEnd('/');
 
-    if (string.IsNullOrEmpty(path) || path == "/")
-    {
-        if (context.Request.Cookies.TryGetValue(".ROBLOSECURITY", out var Cookie) && 
-            !string.IsNullOrEmpty(Cookie))
-        {
-            context.Response.Redirect("/home", permanent: false);
-            return;
-        }
-    }
+    // No server-side "/" -> "/home" redirect based on cookie presence: an expired or logged-out cookie made
+    // "/" and "/home" redirect to each other forever. The landing page redirects verified sessions itself.
 
     await next();
 });

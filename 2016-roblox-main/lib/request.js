@@ -3,12 +3,20 @@ import config from '../lib/config';
 import Router from 'next/router';
 let _csrf = '';
 
+// In the browser, always talk to the site the page was loaded from. Next.js bakes runtime config into
+// pre-rendered pages at build time, so a build made on one host (e.g. a developer PC) would otherwise send
+// every API call to that host. The server side keeps using the configured URLs.
+const browserOrigin = () => (typeof window !== 'undefined' && window.location && window.location.origin) ? window.location.origin : null;
+
 const getFullUrl = (apiSite, fullUrl) => {
-  return config.publicRuntimeConfig.backend.apiFormat.replace(/\{0\}/g, apiSite).replace(/\{1\}/g, fullUrl);
+  const origin = browserOrigin();
+  const format = origin ? origin + '/apisite/{0}{1}' : config.publicRuntimeConfig.backend.apiFormat;
+  return format.replace(/\{0\}/g, apiSite).replace(/\{1\}/g, fullUrl);
 }
 
 const getBaseUrl = () => {
-  return config.publicRuntimeConfig.backend.baseUrl;
+  const origin = browserOrigin();
+  return origin ? origin + '/' : config.publicRuntimeConfig.backend.baseUrl;
 }
 
 // No proxy regardless cause there's nothing for it anyway
