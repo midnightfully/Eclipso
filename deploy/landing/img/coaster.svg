@@ -1,0 +1,66 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice">
+  <!-- Original artwork for Eclipso (CC0 / project-owned). Blocky 2017-style theme-park scene. -->
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#3fc6e6"/>
+      <stop offset="0.65" stop-color="#7fdcf0"/>
+      <stop offset="1" stop-color="#b6ecf6"/>
+    </linearGradient>
+    <linearGradient id="grass" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#5cbf3a"/>
+      <stop offset="1" stop-color="#3f9a2a"/>
+    </linearGradient>
+    <g id="cloud" fill="#ffffff" opacity="0.92">
+      <rect x="0" y="20" width="160" height="40"/>
+      <rect x="30" y="0" width="70" height="30"/>
+      <rect x="80" y="8" width="60" height="22"/>
+    </g>
+    <g id="support" fill="#8a8f96">
+      <rect x="-5" y="0" width="10" height="900"/>
+    </g>
+  </defs>
+  <rect width="1600" height="900" fill="url(#sky)"/>
+  <use href="#cloud" x="120" y="120"/>
+  <use href="#cloud" x="620" y="70" transform="scale(1)"/>
+  <use href="#cloud" x="1180" y="150"/>
+  <use href="#cloud" x="1420" y="60"/>
+  <!-- distant blocky hills -->
+  <path d="M0 690 L0 610 L140 610 L140 580 L320 580 L320 620 L520 620 L520 590 L760 590 L760 630 L980 630 L980 575 L1220 575 L1220 615 L1400 615 L1400 590 L1600 590 L1600 690 Z" fill="#7fcf5a"/>
+  <!-- coaster supports -->
+  <g fill="#9aa1a8">
+    <rect x="215" y="560" width="12" height="200"/>
+    <rect x="345" y="410" width="12" height="350"/>
+    <rect x="475" y="285" width="12" height="475"/>
+    <rect x="605" y="245" width="12" height="515"/>
+    <rect x="735" y="330" width="12" height="430"/>
+    <rect x="865" y="500" width="12" height="260"/>
+    <rect x="995" y="560" width="12" height="200"/>
+    <rect x="1125" y="455" width="12" height="305"/>
+    <rect x="1255" y="390" width="12" height="370"/>
+    <rect x="1385" y="430" width="12" height="330"/>
+    <rect x="1515" y="520" width="12" height="240"/>
+  </g>
+  <g stroke="#9aa1a8" stroke-width="5" fill="none">
+    <path d="M221 700 L351 560 L481 700 L611 560 L741 700 L871 600 L1001 700 L1131 600 L1261 700 L1391 600 L1521 700"/>
+  </g>
+  <!-- red track: two rails plus ties -->
+  <path id="track" d="M-20 640 C120 640 160 600 221 560 C300 505 330 430 351 410 C420 320 440 300 481 285 C540 250 580 240 611 245 C670 255 700 300 741 330 C800 380 830 470 871 500 C920 540 960 562 1001 560 C1050 556 1090 490 1131 455 C1180 410 1220 395 1261 390 C1310 386 1350 415 1391 430 C1450 455 1480 505 1521 520 C1560 535 1590 540 1640 540" fill="none" stroke="#d6232b" stroke-width="16" stroke-linejoin="round"/>
+  <path d="M-20 648 C120 648 160 608 221 568 C300 513 330 438 351 418 C420 328 440 308 481 293 C540 258 580 248 611 253 C670 263 700 308 741 338 C800 388 830 478 871 508 C920 548 960 570 1001 568 C1050 564 1090 498 1131 463 C1180 418 1220 403 1261 398 C1310 394 1350 423 1391 438 C1450 463 1480 513 1521 528 C1560 543 1590 548 1640 548" fill="none" stroke="#7a0f14" stroke-width="22" stroke-dasharray="4 18" opacity="0.6"/>
+  <!-- blocky coaster train near the top of the lift hill -->
+  <g transform="translate(560 196) rotate(-6)">
+    <rect x="0" y="0" width="58" height="34" fill="#f6c21c" stroke="#b88a0c" stroke-width="3"/>
+    <rect x="64" y="2" width="58" height="34" fill="#1f8fe0" stroke="#156aa8" stroke-width="3"/>
+    <rect x="128" y="6" width="58" height="34" fill="#f6c21c" stroke="#b88a0c" stroke-width="3"/>
+    <rect x="12" y="-18" width="16" height="18" fill="#f5d0a9"/>
+    <rect x="76" y="-16" width="16" height="18" fill="#f5d0a9"/>
+    <rect x="140" y="-12" width="16" height="18" fill="#f5d0a9"/>
+  </g>
+  <!-- foreground ground and blocky trees -->
+  <rect x="0" y="740" width="1600" height="160" fill="url(#grass)"/>
+  <rect x="0" y="740" width="1600" height="10" fill="#6fd14a"/>
+  <g>
+    <rect x="80" y="690" width="16" height="60" fill="#8b5a2b"/><rect x="50" y="630" width="76" height="66" fill="#2f8f2a"/>
+    <rect x="1460" y="680" width="16" height="70" fill="#8b5a2b"/><rect x="1428" y="610" width="80" height="76" fill="#2f8f2a"/>
+    <rect x="1040" y="700" width="14" height="50" fill="#8b5a2b"/><rect x="1015" y="652" width="64" height="54" fill="#36a02f"/>
+  </g>
+</svg>
