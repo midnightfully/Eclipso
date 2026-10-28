@@ -38,7 +38,7 @@ systemctl restart eclipso-frontend eclipso-website
 # 4. Health check; roll back on failure.
 ok=0
 for i in $(seq 1 90); do
-  if curl -fsS -o /dev/null -H "Host: ${SITE#*://}" http://127.0.0.1:5080/login && curl -fsS -o /dev/null http://127.0.0.1:3000/login; then ok=1; break; fi
+  if curl -fsS -o /dev/null -A "EclipsoHealthCheck/1.0" -H "Host: ${SITE#*://}" http://127.0.0.1:5080/login && curl -fsS -o /dev/null http://127.0.0.1:3000/login; then ok=1; break; fi
   sleep 2
 done
 if [ $ok -ne 1 ]; then
