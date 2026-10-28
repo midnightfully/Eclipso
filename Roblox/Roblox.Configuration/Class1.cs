@@ -12,6 +12,18 @@ public class GameServerConfigEntry
 public static class Configuration
 {
     public static bool LocalDevelopment { get; set; }
+    /// <summary>
+    /// Security gate (default off). When false, nothing a user uploads is handed to native tools (mesh/RBXM
+    /// converters, ffmpeg/ffprobe) or to RCC (thumbnail renders, game servers). Those run old native parsers and
+    /// Lua on attacker-controlled files, the most likely route to the upstream's reported remote code execution.
+    /// Turn on only for an isolated render/game worker, never on the public web server.
+    /// </summary>
+    public static bool AllowUntrustedContentProcessing { get; set; }
+    /// <summary>/local/* helpers (test Robux, instant accounts, fixtures). Separate from LocalDevelopment because
+    /// behind a reverse proxy every request looks like loopback. Must be false on any public server.</summary>
+    public static bool LocalTestEndpointsEnabled { get; set; }
+    public const string UntrustedContentDisabledMessage =
+        "This kind of upload is not available yet. It needs the isolated render service, which is not set up.";
     public static string CdnBaseUrl { get; set; }
     public static string StorageDirectory { get; set; }
     public static string AssetDirectory { get; set; }
@@ -54,7 +66,11 @@ public static class Configuration
 	public static string RccService2020Path { get; set; }
 	public static string LuaScriptPath { get; set; }
 	public static IEnumerable<string> AllowedQuietGetJson { get; set; } = Array.Empty<string>();
-    public const string UserAgentBypassSecret = "503534DA-F2F8-4681-9B37-15EE9EAE88DC4D0FAE23-F672-4BC6-8D5F-E35A2939680DB1980985-AF9C-4B2E-B19E-67005FBAD27B";
+    // Signing secrets come from private configuration (Secrets:*). The upstream values were published in the
+    // source code, so anyone could forge the cookies they sign. Fallback: a random per-process secret.
+    public static string UserAgentBypassSecret { get; set; } = RandomSecret();
+    public static string VerificationSecret { get; set; } = RandomSecret();
+    public static string RandomSecret() => Convert.ToBase64String(System.Security.Cryptography.RandomNumberGenerator.GetBytes(48));
     public static long PackageShirtAssetId { get; set; }
     public static long PackagePantsAssetId { get; set; }
     public static long PackageLeftArmAssetId { get; set; }

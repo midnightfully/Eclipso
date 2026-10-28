@@ -1,0 +1,29 @@
+[
+  {
+    "test": "Cross-site browser requests are refused, incl. CSRF-exempt routes",
+    "result": "PASS",
+    "details": {
+      "CSRF-exempt route /user/request-friendship": "403 for foreign Origin, Sec-Fetch-Site cross-site, null Origin",
+      "CSRF-exempt route /marketplace/purchase": "403 for foreign Origin, Sec-Fetch-Site cross-site, null Origin",
+      "normal API route": "403 for foreign Origin, Sec-Fetch-Site cross-site, null Origin"
+    }
+  },
+  {
+    "test": "Same-site and game-client style requests are not blocked by the cross-site check",
+    "result": "PASS",
+    "details": {
+      "no-origin client request": 200,
+      "same-origin browser request": 403
+    }
+  },
+  {
+    "test": "Uploads needing native tools / RCC are refused while the gate is off",
+    "result": "PASS",
+    "details": {
+      "mesh": "refused: not available yet",
+      "audio": "refused: not available yet",
+      "shirt": "refused: not available yet",
+      "place version": "refused"
+    }
+  }
+]

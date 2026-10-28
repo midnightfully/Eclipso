@@ -632,6 +632,9 @@ public class WebController : ControllerBase
 	[HttpPost("develop/upload-version")]
 	public async Task UploadVersion([Required, FromForm] UploadAssetVersionRequest request)
 	{
+		// Place/model versions are loaded and rendered by RCC, which runs scripts inside them.
+		if (!Configuration.AllowUntrustedContentProcessing)
+			throw new BadRequestException(0, Configuration.UntrustedContentDisabledMessage);
 		var info = await services.assets.GetAssetCatalogInfo(request.assetId);
 		var canUpload = await services.assets.CanUserModifyItem(info.id, safeUserSession.userId);
 
@@ -727,6 +730,9 @@ public class WebController : ControllerBase
 
 		if (!isClothing && !isAudio && !isImage && !isMesh && !isBadge && !isGamePass)
 			throw new RobloxException(400, 0, "Endpoint does not support this assetType: " + request.assetType);
+		// Meshes and audio go through native parsers; clothing needs RCC to render. See Configuration.AllowUntrustedContentProcessing.
+		if ((isMesh || isAudio || isClothing) && !Configuration.AllowUntrustedContentProcessing)
+			throw new BadRequestException(0, Configuration.UntrustedContentDisabledMessage);
         
         // Limit of 50 assets globally pending approval before failure
         var pendingAssets = await services.assets.CountAssetsPendingApproval();

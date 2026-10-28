@@ -33,7 +33,7 @@
     "test": "Register and authenticated session",
     "result": "PASS",
     "details": {
-      "userId": 80,
+      "userId": 95,
       "session": "authenticated"
     }
   },

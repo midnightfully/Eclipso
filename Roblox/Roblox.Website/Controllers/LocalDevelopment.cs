@@ -17,7 +17,7 @@ public class LocalDevelopmentController : ControllerBase
     public LocalDevelopmentController(NpgsqlConnection connection) { db = connection; }
     private void Check()
     {
-        if (!Roblox.Configuration.LocalDevelopment || HttpContext.Connection.RemoteIpAddress == null ||
+        if (!Roblox.Configuration.LocalDevelopment || !Roblox.Configuration.LocalTestEndpointsEnabled || HttpContext.Connection.RemoteIpAddress == null ||
             !IPAddress.IsLoopback(HttpContext.Connection.RemoteIpAddress))
             throw new Roblox.Services.Exceptions.RobloxException(404, 0, "Not found");
         var origin = Request.Headers.Origin.ToString();

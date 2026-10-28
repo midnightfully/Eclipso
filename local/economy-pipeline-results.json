@@ -12,7 +12,7 @@
     "test": "Publish ordinary item: stored, thumbnail, catalog search, item details",
     "result": "PASS",
     "details": {
-      "assetId": 9,
+      "assetId": 11,
       "thumbnail": "/images/ead4b0073f78a35690590fbb21e2b814745578a806ed89a89bf494721b81d5d5.png",
       "catalog search": "found",
       "item details price": 10
@@ -61,11 +61,11 @@
     "result": "PASS",
     "details": {
       "5 simultaneous buyers for 3 copies": {
-        "88": "ok",
-        "87": "ok",
-        "86": "ok",
-        "89": "400 {\"errors\":[{\"code\":0,\"message\":\"Item is no longer for sale\"}]}",
-        "90": "400 {\"errors\":[{\"code\":0,\"message\":\"This item is no longer for sale.\"}]}"
+        "105": "ok",
+        "103": "ok",
+        "101": "ok",
+        "104": "400 {\"errors\":[{\"code\":0,\"message\":\"This item is no longer for sale.\"}]}",
+        "102": "400 {\"errors\":[{\"code\":0,\"message\":\"This item is no longer for sale.\"}]}"
       },
       "serials": [
         1,

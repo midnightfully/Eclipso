@@ -167,6 +167,25 @@ public class CsrfMiddleware : ControllerServicesExtended
 		"/users/account-info",
     };
 
+private static bool IsCrossSiteBrowserRequest(HttpContext ctx)
+{
+    var fetchSite = ctx.Request.Headers["Sec-Fetch-Site"].ToString();
+    if (fetchSite.Equals("cross-site", StringComparison.OrdinalIgnoreCase))
+        return true;
+    var origin = ctx.Request.Headers.Origin.ToString();
+    if (string.IsNullOrEmpty(origin) || origin == "null")
+        return origin == "null"; // "null" origin = sandboxed/opaque browser context
+    if (!Uri.TryCreate(origin, UriKind.Absolute, out var originUri))
+        return true;
+    // Same host as this request (works behind the reverse proxy, which preserves Host) or the configured site.
+    if (string.Equals(originUri.Host, ctx.Request.Host.Host, StringComparison.OrdinalIgnoreCase))
+        return false;
+    if (Uri.TryCreate(Roblox.Configuration.BaseUrl, UriKind.Absolute, out var site) &&
+        string.Equals(originUri.Host, site.Host, StringComparison.OrdinalIgnoreCase))
+        return false;
+    return true;
+}
+
 public async Task InvokeAsync(HttpContext ctx)
 {
     var csrfTimer = new MiddlewareTimer(ctx, "c");
@@ -177,9 +196,21 @@ public async Task InvokeAsync(HttpContext ctx)
         pathLower = pathLower.Substring(0, pathLower.Length - 1);
     }
 
+    // Routes in bypassUrls skip the token check because the game client cannot send one. Browsers, unlike the
+    // client, label cross-site requests (Sec-Fetch-Site / Origin), so a state-changing request a browser marks as
+    // coming from another site is refused on every route. This closes CSRF on the exempt routes without
+    // affecting the game client.
+    var isUnsafeMethod = ctx.Request.Method != "GET" && ctx.Request.Method != "OPTIONS" && ctx.Request.Method != "HEAD";
+    if (isUnsafeMethod && IsCrossSiteBrowserRequest(ctx))
+    {
+        ctx.Response.StatusCode = 403;
+        await ctx.Response.WriteAsJsonAsync(new { errors = new[] { new { code = 0, message = "Cross-site request refused" } } });
+        return;
+    }
+
     try
     {
-        if (ctx.Request.Method != "GET" && ctx.Request.Method != "OPTIONS" && ctx.Request.Method != "HEAD" && 
+        if (isUnsafeMethod && 
 			!bypassUrls.Any(url => pathLower.StartsWith(url.ToLower())))
         {
             var token = await TryGetCookie(ctx);

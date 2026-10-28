@@ -35,6 +35,11 @@ IConfiguration configuration = new ConfigurationBuilder()
 
 var builder = WebApplication.CreateBuilder(args);
 Roblox.Configuration.LocalDevelopment = configuration.GetValue<bool>("LocalDevelopment");
+Roblox.Configuration.AllowUntrustedContentProcessing = configuration.GetValue<bool>("Security:AllowUntrustedContentProcessing");
+Roblox.Configuration.LocalTestEndpointsEnabled = configuration.GetValue<bool>("Development:EnableLocalTestEndpoints");
+if (!string.IsNullOrWhiteSpace(configuration["Secrets:UserAgentBypass"])) Roblox.Configuration.UserAgentBypassSecret = configuration["Secrets:UserAgentBypass"]!;
+if (!string.IsNullOrWhiteSpace(configuration["Secrets:Verification"])) Roblox.Configuration.VerificationSecret = configuration["Secrets:Verification"]!;
+Console.WriteLine("[security] untrusted content processing (RCC/native converters): {0}", Roblox.Configuration.AllowUntrustedContentProcessing ? "ENABLED" : "disabled");
 
 Console.WriteLine("[Local] loading database schema");
 // DB

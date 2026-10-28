@@ -656,6 +656,8 @@ public class GameServerService : ServiceBase
 			
 	public async Task<string> StartGameServer(long placeId, int RCCPort, int NSPort, string jobId, int JobExpiration, long MaxPlayers)
 	{
+		if (!Configuration.AllowUntrustedContentProcessing)
+			throw new InvalidOperationException("Game servers are disabled on this host: untrusted content processing is off");
 		//Console.WriteLine($"starting 2016 place {jobId} on id {placeId} with RCC port: {RCCPort}, NS port: {NSPort}");
 		// Before we waste our time, check if the place exists
 		AssetsService assetsService = new AssetsService();
@@ -753,6 +755,8 @@ public class GameServerService : ServiceBase
 			
 	public async Task<string> StartGameServer2015(long placeId, int RCCPort, int NSPort, string jobId, int JobExpiration, long MaxPlayers)
 	{
+		if (!Configuration.AllowUntrustedContentProcessing)
+			throw new InvalidOperationException("Game servers are disabled on this host: untrusted content processing is off");
 		// Before we waste our time, check if the place exists
 		AssetsService assetsService = new AssetsService();
 		GamesService gamesService = new GamesService();
@@ -849,6 +853,8 @@ public class GameServerService : ServiceBase
 
 	public async Task<string> StartGameServer2017(long placeId, int RCCPort, int NSPort, string jobId, int JobExpiration, long MaxPlayers)
 	{
+		if (!Configuration.AllowUntrustedContentProcessing)
+			throw new InvalidOperationException("Game servers are disabled on this host: untrusted content processing is off");
 		// Before we waste our time, check if the place exists
 		AssetsService assetsService = new AssetsService();
 		GamesService gamesService = new GamesService();
@@ -945,6 +951,8 @@ public class GameServerService : ServiceBase
 
 	public async Task<string> StartGameServer2018(long placeId, int RCCPort, int NSPort, string jobId, int JobExpiration, long MaxPlayers)
 	{
+		if (!Configuration.AllowUntrustedContentProcessing)
+			throw new InvalidOperationException("Game servers are disabled on this host: untrusted content processing is off");
 		// Before we waste our time, check if the place exists
 		AssetsService assetsService = new AssetsService();
 		GamesService gamesService = new GamesService();
@@ -1081,6 +1089,8 @@ public class GameServerService : ServiceBase
 	
 	public async Task<string> StartGameServer2020(long placeId, int RCCPort, int NSPort, string jobId, int JobExpiration, long MaxPlayers)
 	{
+		if (!Configuration.AllowUntrustedContentProcessing)
+			throw new InvalidOperationException("Game servers are disabled on this host: untrusted content processing is off");
 		// Before we waste our time, check if the place exists
 		AssetsService assetsService = new AssetsService();
 		GamesService gamesService = new GamesService();

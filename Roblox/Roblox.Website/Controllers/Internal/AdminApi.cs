@@ -3843,6 +3843,8 @@ Thank you for your understanding,
 		
 	private async Task<string> ConvertRBXM(string rbxm, string CWD)
 	{
+		if (!Configuration.AllowUntrustedContentProcessing)
+			throw new BadRequestException(0, Configuration.UntrustedContentDisabledMessage);
 		var rbxmkdir = Path.Combine(Configuration.PublicDirectory, "rbxmk");
 		if (!Directory.Exists(rbxmkdir))
 		{
@@ -3941,6 +3943,8 @@ Thank you for your understanding,
 
 	private async Task<string> ProcessOBJ(string OBJ, string CWD)
 	{
+		if (!Configuration.AllowUntrustedContentProcessing)
+			throw new BadRequestException(0, Configuration.UntrustedContentDisabledMessage);
 		// OBJToRBXMesh does .obj.mesh for some reason
 		var convertedmesh = Path.Combine(CWD, $"{Path.GetFileName(OBJ)}.mesh");
 

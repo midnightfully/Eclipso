@@ -499,6 +499,8 @@ public class AssetsService : ServiceBase, IService
 	
 	private static async Task<int> StartRccService()
 	{
+		if (!Configuration.AllowUntrustedContentProcessing)
+			throw new InvalidOperationException("RCC is disabled: untrusted content processing is off");
 		lock (rccLock)
 		{
 			if (rccProcess != null && !rccProcess.HasExited && rccPort.HasValue)
@@ -958,6 +960,11 @@ public class AssetsService : ServiceBase, IService
     /// <exception cref="Exception"></exception>
 	public async Task RenderAssetAsync(long assetId, Models.Assets.Type assetType, CancellationToken? cancellationToken = null)
 	{
+		if (!Configuration.AllowUntrustedContentProcessing)
+		{
+			Console.WriteLine("[security] render of asset {0} skipped: untrusted content processing is disabled", assetId);
+			return;
+		}
 		List<Task> thumbRequests = new();
 		switch (assetType)
 		{
