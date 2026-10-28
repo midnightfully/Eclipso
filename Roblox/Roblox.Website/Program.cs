@@ -23,7 +23,13 @@ var domain = AppDomain.CurrentDomain;
 // Set a timeout interval of 5 seconds.
 domain.SetData("REGEX_DEFAULT_MATCH_TIMEOUT", TimeSpan.FromSeconds(5));
 
+// Private configuration lives outside the build output: ECLIPSO_CONFIG_DIR on servers, otherwise the
+// working directory (Roblox/Roblox.Website locally). The build copies a snapshot of appsettings.json into
+// bin/, and reading that stale copy made owner changes silently ineffective.
+var configDirectory = Environment.GetEnvironmentVariable("ECLIPSO_CONFIG_DIR") ?? Directory.GetCurrentDirectory();
+Console.WriteLine("[Local] configuration directory: {0}", configDirectory);
 IConfiguration configuration = new ConfigurationBuilder()
+    .SetBasePath(configDirectory)
     .AddJsonFile("appsettings.json")
     .Build();
 
@@ -83,7 +89,7 @@ Roblox.Configuration.GameServerAuthorization = configuration.GetSection("GameSer
 Roblox.Configuration.RenderAuthorization = configuration.GetSection("Render:Authorization").Value;
 Roblox.Configuration.BotAuthorization = configuration.GetSection("BotAuthorization").Value;
 // game-server config stuff
-IConfiguration gameServerConfig = new ConfigurationBuilder().AddJsonFile("game-servers.json").Build();
+IConfiguration gameServerConfig = new ConfigurationBuilder().SetBasePath(configDirectory).AddJsonFile("game-servers.json").Build();
 Roblox.Configuration.GameServerIpAddresses = gameServerConfig.GetSection("GameServers").GetChildren().Select(c => new GameServerConfigEntry { ip = c["ip"] ?? "127.0.0.1", domain = c["domain"] ?? "localhost", maxServerCount = int.TryParse(c["maxServerCount"], out var count) ? count : 0 }).ToArray();
 Roblox.Configuration.RccAuthorization = configuration.GetSection("RccAuthorization").Value;
 Roblox.Configuration.AllowedQuietGetJson = configuration.GetSection("AllowedQuietGetJson").GetChildren().Select(c => c.Value);
