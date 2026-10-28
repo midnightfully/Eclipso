@@ -770,12 +770,40 @@ public class UsersService : ServiceBase, IService
         };
         var serialized = JsonSerializer.Serialize(sess);
         var id = Guid.NewGuid().ToString();
-        await redis.StringSetAsync(redisKeyPrefix + id, serialized);
+        // PostgreSQL is authoritative (survives restarts, supports expiry/revocation); the cache is a TTL copy.
+        await db.ExecuteAsync("INSERT INTO user_web_session (id, user_id, created_at, expires_at) VALUES (:id, :userId, :createdAt, :expiresAt)",
+            new { id, userId, createdAt = sess.createdAt, expiresAt = sess.createdAt.Add(SessionLifetime) });
+        await redis.StringSetAsync(redisKeyPrefix + id, serialized, SessionLifetime);
         return id;
+    }
+
+    /// <summary>How long a login lasts before the user must sign in again.</summary>
+    public static readonly TimeSpan SessionLifetime = TimeSpan.FromDays(30);
+
+    /// <summary>Reads a live (not expired, not revoked) session from the database and re-caches it.</summary>
+    private async Task<SessionEntry?> GetSessionFromDatabase(string sessionId)
+    {
+        var row = await db.QuerySingleOrDefaultAsync<SessionDbRow>(
+            "SELECT user_id AS userId, created_at AS createdAt, expires_at AS expiresAt FROM user_web_session WHERE id = :id AND revoked_at IS NULL AND expires_at > now()",
+            new { id = sessionId });
+        if (row == null) return null;
+        var entry = new SessionEntry { userId = row.userId, createdAt = row.createdAt.UtcDateTime };
+        var remaining = row.expiresAt - DateTimeOffset.UtcNow;
+        if (remaining > TimeSpan.Zero)
+            await redis.StringSetAsync(redisKeyPrefix + sessionId, JsonSerializer.Serialize(entry), remaining);
+        return entry;
+    }
+
+    private class SessionDbRow
+    {
+        public long userId { get; set; }
+        public DateTimeOffset createdAt { get; set; }
+        public DateTimeOffset expiresAt { get; set; }
     }
 
     public async Task DeleteSession(string sessionId)
     {
+        await db.ExecuteAsync("UPDATE user_web_session SET revoked_at = now() WHERE id = :id AND revoked_at IS NULL", new { id = sessionId });
         await redis.KeyDeleteAsync(redisKeyPrefix + sessionId);
         using var sess = ServiceProvider.GetOrCreate<UserSessionsCache>();
         sess.Remove(sessionId);
@@ -811,10 +839,17 @@ public class UsersService : ServiceBase, IService
         else
         {
             var result = await redis.StringGetAsync(redisKeyPrefix + sessionId);
-            if (result == null) 
-                throw new RecordNotFoundException();
-            
-            mySess = JsonSerializer.Deserialize<SessionEntry>(result);
+            if (result == null)
+            {
+                // Cache miss (e.g. after a restart): fall back to the authoritative database row.
+                mySess = await GetSessionFromDatabase(sessionId);
+                if (mySess == null)
+                    throw new RecordNotFoundException();
+            }
+            else
+            {
+                mySess = JsonSerializer.Deserialize<SessionEntry>(result);
+            }
             sessCache.Set(sessionId, mySess);
 
             if (mySess != null)

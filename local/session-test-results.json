@@ -1,0 +1,22 @@
+[
+  {
+    "test": "Login creates a database session with an expiry",
+    "result": "PASS",
+    "details": "2 live sessions stored in PostgreSQL with ~30-day expiry"
+  },
+  {
+    "test": "Sessions survive a full restart",
+    "result": "PASS",
+    "details": "both sessions still valid after full stop/start (cache emptied)"
+  },
+  {
+    "test": "Logout revokes only that session",
+    "result": "PASS",
+    "details": "logged-out cookie rejected (incl. a copy); other browser still signed in; 1 row revoked"
+  },
+  {
+    "test": "Revocation survives a restart",
+    "result": "PASS",
+    "details": "revoked session stays dead after restart; live one still valid"
+  }
+]

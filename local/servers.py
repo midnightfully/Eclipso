@@ -13,6 +13,13 @@ children={};logs=[]
 def status(state,message):
  data={'state':state,'message':message,'updated':time.time(),'pid':os.getpid()}
  tmp=STATE/'status.tmp';tmp.write_text(json.dumps(data));tmp.replace(STATE/'status.json')
+def pid_alive(pid):
+ try:
+  if os.name=='nt':
+   out=subprocess.run(['tasklist','/FI','PID eq %d'%int(pid),'/NH'],capture_output=True,text=True,creationflags=FLAGS).stdout
+   return str(int(pid)) in out
+  os.kill(int(pid),0);return True
+ except Exception:return False
 def alive(port):
  try:
   with socket.create_connection(('127.0.0.1',port),1):return True
@@ -73,7 +80,11 @@ if '--hold' in sys.argv:
   background('cache',[GARNET,'--bind','127.0.0.1','--port','16379','--memory','64m','--index','8m','--lua','--lua-transaction-mode'],ROOT)
   wait_for(pg_ready,'Waiting for PostgreSQL')
   wait_for(lambda:alive(16379),'Waiting for cache')
-  background('frontend',['C:/Program Files/nodejs/node.exe',ROOT/'2016-roblox-main/node_modules/next/dist/bin/next','dev','-H','127.0.0.1','-p','3000'],ROOT/'2016-roblox-main')
+  # Serve the production build (local/build-frontend.cmd) when it exists. `next dev` breaks dynamic pages
+  # such as /catalog/<id>/<name> behind the backend proxy (its hot-reload WebSocket is not proxied).
+  prod=(ROOT/'2016-roblox-main/.next-prod/BUILD_ID').exists() and os.environ.get('ECLIPSO_FRONTEND_MODE')!='dev'
+  if prod:ENV['NEXT_BUILD_DIR']='.next-prod'
+  background('frontend',['C:/Program Files/nodejs/node.exe',ROOT/'2016-roblox-main/node_modules/next/dist/bin/next','start' if prod else 'dev','-H','127.0.0.1','-p','3000'],ROOT/'2016-roblox-main')
   background('website',['C:/Program Files/dotnet/dotnet.exe',ROOT/'Roblox/Roblox.Website/bin/Debug/net10.0/Roblox.Website.dll'],ROOT/'Roblox/Roblox.Website')
   wait_for(ready,'Waiting for website')
   print('Ready: http://127.0.0.1:5080/local',flush=True)
@@ -88,6 +99,12 @@ if '--hold' in sys.argv:
   try:shutdown()
   except Exception as cleanup:print(str(cleanup),flush=True)
   status('error',str(e));print(str(e),flush=True);raise SystemExit(1)
+elif 'status' in sys.argv:
+ try:s=json.loads((STATE/'status.json').read_text())
+ except Exception:s={}
+ if s.get('state') in ('running','starting') and not pid_alive(s.get('pid',0)):
+  print('Stopped (the supervisor is no longer running; the last status was stale). Run Start Website.cmd.')
+ else:print(s.get('state','unknown')+': '+s.get('message',''))
 elif 'stop' in sys.argv:
  (STATE/'stop.request').write_text('stop')
  print('Stopping local services...',flush=True)
@@ -100,12 +117,15 @@ elif 'stop' in sys.argv:
  else:raise SystemExit('Stop timed out; see .local/status.json')
 else:
  if ready():print('Ready: http://127.0.0.1:5080/local',flush=True);raise SystemExit(0)
- try:s=json.loads((STATE/'status.json').read_text());recent=time.time()-s['updated']<15 and s['state']=='starting'
+ try:s=json.loads((STATE/'status.json').read_text());recent=time.time()-s['updated']<15 and s['state']=='starting' and pid_alive(s.get('pid',0))
  except Exception:recent=False
  launched=time.time()
  if not recent:
   log=open(STATE/'supervisor.log','ab',buffering=0)
-  subprocess.Popen([sys.executable,__file__,'--hold'],cwd=ROOT,env=ENV,stdout=log,stderr=log,stdin=subprocess.DEVNULL,creationflags=FLAGS)
+  # Detach the supervisor so closing the window (or the tool session) that started it cannot kill the website.
+  detached=FLAGS|(subprocess.CREATE_NEW_PROCESS_GROUP|subprocess.DETACHED_PROCESS|0x01000000 if os.name=='nt' else 0)  # 0x01000000 = CREATE_BREAKAWAY_FROM_JOB
+  try:subprocess.Popen([sys.executable,__file__,'--hold'],cwd=ROOT,env=ENV,stdout=log,stderr=log,stdin=subprocess.DEVNULL,creationflags=detached,start_new_session=os.name!='nt')
+  except OSError:subprocess.Popen([sys.executable,__file__,'--hold'],cwd=ROOT,env=ENV,stdout=log,stderr=log,stdin=subprocess.DEVNULL,creationflags=FLAGS&~0x01000000|(subprocess.CREATE_NEW_PROCESS_GROUP|subprocess.DETACHED_PROCESS if os.name=='nt' else 0))
  print('Starting the website. The first startup may take a few minutes...',flush=True)
  for _ in range(600):
   if ready():print('Ready: open http://127.0.0.1:5080/local in Opera GX',flush=True);break

@@ -42,7 +42,7 @@
 				{#await request.get("/asset/types") then data}
 					{#each Object.getOwnPropertyNames(data.data) as element}
 						{#if !isNaN(parseInt(element))}
-							<option value={element}>{data.data[element]}</option>
+							<option value={element} disabled={element !== "1"}>{data.data[element]}{element !== "1" ? " (unavailable: needs the game renderer)" : ""}</option>
 						{/if}
 					{/each}
 				{/await}

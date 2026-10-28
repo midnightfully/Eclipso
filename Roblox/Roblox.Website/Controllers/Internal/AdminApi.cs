@@ -3451,12 +3451,19 @@ Thank you for your understanding,
         };
     }
 
+    private static readonly HashSet<Type> PublishableAssetTypes = new() { Type.Image };
+
     [HttpPost("asset/create"), StaffFilter(Access.CreateAsset)]
     public async Task<dynamic> CreateAsset([Required, FromForm] CreateAssetRequest request)
 	{
 		if (request.isLimitedUnique) request.isLimited = true;
 		if (!Enum.IsDefined(request.assetTypeId))
 			throw new StaffException("Bad assetTypeId");
+		// Only types that can complete the whole pipeline (validated upload + thumbnail) are accepted.
+		// Others need the game renderer / asset validation service, which are not set up; Audio, Mesh and
+		// Place uploads were previously stored without any validation.
+		if (!PublishableAssetTypes.Contains(request.assetTypeId))
+			throw new BadRequestException(0, $"{request.assetTypeId} items cannot be published yet: they need the game renderer, which is not set up. Use the Image type.");
 
 		var isPackage = request.assetTypeId == Type.Package;
 		var disableRender = isPackage;
