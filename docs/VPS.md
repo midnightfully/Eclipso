@@ -25,6 +25,13 @@ Recorded 2026-10-28. Ubuntu 24.04.5 LTS, 2 vCPU, 7.8 GB RAM, 96 GB disk, France.
 - Update it (from the project folder, Git Bash):
   `tar -cf - -C deploy/landing . | ssh kindmops@2.24.48.245 'sudo tar -xf - -C /var/www/eclipso-landing --no-same-owner && sudo chmod -R a+rX /var/www/eclipso-landing'`
 - Roll back: check out the previous commit of `deploy/landing` and run the same command.
-- HTTPS is added automatically by Caddy once DNS for eclipso.lol points at this IP and the domain names replace `:80` in the Caddyfile.
+- Live since 2026-10-28: https://eclipso.lol (canonical), https://staging.eclipso.lol (noindex), www and http redirect to https://eclipso.lol. Let's Encrypt certificates, renewed automatically by Caddy.
+- Previous IP-only config kept on the server as `/etc/caddy/Caddyfile.bak-ip-only`.
+- Change the Caddy config: edit `deploy/caddy/Caddyfile.landing`, then
+  `ssh kindmops@2.24.48.245 'sudo cp /etc/caddy/Caddyfile /etc/caddy/Caddyfile.bak && sudo tee /etc/caddy/Caddyfile >/dev/null && sudo caddy validate --config /etc/caddy/Caddyfile && sudo systemctl reload caddy' < deploy/caddy/Caddyfile.landing`
+
+## DNS (Spaceship, authoritative: launch1/launch2.spaceship.net)
+
+A records `@`, `www`, `staging` → 2.24.48.245. The previous parking A records (34.216.117.25, 54.149.79.189) were removed. No MX/TXT records existed.
 
 The full website (backend, database) is NOT deployed. See docs/BUILD-PLAN-2017.md for the security gates.

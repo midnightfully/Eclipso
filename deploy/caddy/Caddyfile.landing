@@ -1,13 +1,37 @@
-# Eclipso placeholder landing page (static). Domains are added once DNS points here.
-:80 {
-	root * /var/www/eclipso-landing
-	file_server
-	encode gzip
+# Eclipso placeholder landing page (static, no backend). Live config: /etc/caddy/Caddyfile
+# Caddy obtains and renews HTTPS certificates automatically for the names below.
+
+(landing_headers) {
 	header {
+		Strict-Transport-Security "max-age=31536000"
 		X-Content-Type-Options nosniff
 		Referrer-Policy strict-origin-when-cross-origin
 		X-Frame-Options DENY
 		Content-Security-Policy "default-src 'none'; img-src 'self'; style-src 'unsafe-inline'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'"
 		-Server
 	}
+}
+
+eclipso.lol {
+	root * /var/www/eclipso-landing
+	file_server
+	encode gzip
+	import landing_headers
+}
+
+www.eclipso.lol {
+	redir https://eclipso.lol{uri} permanent
+}
+
+staging.eclipso.lol {
+	root * /var/www/eclipso-landing
+	file_server
+	encode gzip
+	import landing_headers
+	header X-Robots-Tag "noindex, nofollow"
+}
+
+# Visits by bare IP address go to the main site.
+http://2.24.48.245 {
+	redir https://eclipso.lol{uri}
 }
