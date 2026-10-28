@@ -22,6 +22,15 @@ public static class Configuration
     /// <summary>/local/* helpers (test Robux, instant accounts, fixtures). Separate from LocalDevelopment because
     /// behind a reverse proxy every request looks like loopback. Must be false on any public server.</summary>
     public static bool LocalTestEndpointsEnabled { get; set; }
+    // Explicit settings that used to be implied by LocalDevelopment (see docs/CONFIGURATION.md).
+    /// <summary>New accounts need staff approval of an application before they can use the site.</summary>
+    public static bool RequireSignupApproval { get; set; }
+    /// <summary>Grant the upstream daily Robux/Tickets stipend on activity.</summary>
+    public static bool DailyStipendEnabled { get; set; }
+    /// <summary>Use the external IPHub service when hashing/checking visitor IPs.</summary>
+    public static bool ExternalIpLookupEnabled { get; set; }
+    /// <summary>Mark session cookies Secure (HTTPS only). Must be true on any HTTPS host.</summary>
+    public static bool SecureCookies { get; set; }
     public const string UntrustedContentDisabledMessage =
         "This kind of upload is not available yet. It needs the isolated render service, which is not set up.";
     public static string CdnBaseUrl { get; set; }

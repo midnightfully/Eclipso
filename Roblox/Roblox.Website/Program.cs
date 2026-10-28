@@ -37,6 +37,10 @@ var builder = WebApplication.CreateBuilder(args);
 Roblox.Configuration.LocalDevelopment = configuration.GetValue<bool>("LocalDevelopment");
 Roblox.Configuration.AllowUntrustedContentProcessing = configuration.GetValue<bool>("Security:AllowUntrustedContentProcessing");
 Roblox.Configuration.LocalTestEndpointsEnabled = configuration.GetValue<bool>("Development:EnableLocalTestEndpoints");
+Roblox.Configuration.RequireSignupApproval = configuration.GetValue<bool>("Features:RequireSignupApproval");
+Roblox.Configuration.DailyStipendEnabled = configuration.GetValue<bool>("Features:DailyStipend");
+Roblox.Configuration.ExternalIpLookupEnabled = configuration.GetValue<bool>("Security:ExternalIpLookup");
+Roblox.Configuration.SecureCookies = configuration.GetValue<bool>("Security:SecureCookies");
 if (!string.IsNullOrWhiteSpace(configuration["Secrets:UserAgentBypass"])) Roblox.Configuration.UserAgentBypassSecret = configuration["Secrets:UserAgentBypass"]!;
 if (!string.IsNullOrWhiteSpace(configuration["Secrets:Verification"])) Roblox.Configuration.VerificationSecret = configuration["Secrets:Verification"]!;
 Console.WriteLine("[security] untrusted content processing (RCC/native converters): {0}", Roblox.Configuration.AllowUntrustedContentProcessing ? "ENABLED" : "disabled");
@@ -124,7 +128,7 @@ FeatureFlags.StartUpdateFlagTask();
 Roblox.Website.Filters.StaffFilter.Configure(long.Parse(configuration.GetSection("OwnerUserId").Value));
 // Roblox.Website.Controllers.ThumbnailsControllerV1.StartThumbnailFixLoop();
 
-if (Roblox.Configuration.LocalDevelopment)
+// Always persist data-protection keys, or every restart invalidates cookies/tokens it protects.
 {
     var keyPath = Path.Combine(Roblox.Configuration.StorageDirectory, "data-protection");
     Directory.CreateDirectory(keyPath);
@@ -366,20 +370,24 @@ app.UseApplicationGuardMiddleware();
 Roblox.Website.Middleware.ApplicationGuardMiddleware.Configure(configuration.GetSection("Authorization").Value);
 Roblox.Website.Middleware.CsrfMiddleware.Configure(Guid.NewGuid().ToString() + Guid.NewGuid().ToString() + Guid.NewGuid().ToString()); // TODO: This would break if we ever load balance
 
-app.UseSwagger();
-app.UseSwaggerUI();
+// API explorer only for local development; it lists every endpoint.
+if (Roblox.Configuration.LocalTestEndpointsEnabled)
+{
+    app.UseSwagger();
+    app.UseSwaggerUI();
+}
 
 app.UseMiddleware<FrontendProxyMiddleware>();
 app.UseRobloxLoggingMiddleware();
 
 app.UseExceptionHandler("/error");
 // await CommandHandler.Configure("ws://localhost:3189", "hello world of deving 1234");
-if (!Roblox.Configuration.LocalDevelopment) CommandHandler.Configure(configuration.GetSection("Render:BaseUrl").Value, configuration.GetSection("Render:Authorization").Value);
+if (Roblox.Configuration.AllowUntrustedContentProcessing) CommandHandler.Configure(configuration.GetSection("Render:BaseUrl").Value, configuration.GetSection("Render:Authorization").Value);
 
 SessionMiddleware.Configure(configuration.GetSection("Jwt:Sessions").Value);
 app.UseTimerMiddleware(); // Must always be last
 
-if (!Roblox.Configuration.LocalDevelopment) Task.Run(async () =>
+if (Roblox.Configuration.AllowUntrustedContentProcessing) Task.Run(async () =>
 {
     using var db = new NpgsqlConnection(configuration.GetSection("Postgres").Value);
     await db.OpenAsync();

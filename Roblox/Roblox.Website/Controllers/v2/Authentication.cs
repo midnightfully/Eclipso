@@ -138,7 +138,7 @@ public class AuthenticationControllerV2 : ControllerBase
         });
         HttpContext.Response.Cookies.Append(Middleware.SessionMiddleware.CookieName, sessionCookie, new CookieOptions()
         {
-            Secure = !Roblox.Configuration.LocalDevelopment,
+            Secure = Roblox.Configuration.SecureCookies,
             Expires = DateTimeOffset.Now.Add(TimeSpan.FromDays(364)),
             IsEssential = true,
             HttpOnly = true,

@@ -191,7 +191,7 @@ public class SessionMiddleware
 
     private async Task<string> GetHashedIP(string ip)
     {
-        if (Roblox.Configuration.LocalDevelopment) return HashIp(ip);
+        if (!Roblox.Configuration.ExternalIpLookupEnabled) return HashIp(ip);
         if (IPCache.TryGetValue(ip, out var cacheEntry))
         {
             if (DateTime.UtcNow - cacheEntry.LastUpdated > IPCacheDuration)
@@ -292,7 +292,7 @@ public class SessionMiddleware
 							}
 						}
 
-						if (!Roblox.Configuration.LocalDevelopment && !currentPath.StartsWith("/thumbs/") && !currentPath.StartsWith("/images/"))
+						if (Roblox.Configuration.DailyStipendEnabled && !currentPath.StartsWith("/thumbs/") && !currentPath.StartsWith("/images/"))
 						{
 							await users.EarnDailyRobuxNoVirusNoScamHindiSubtitles(userInfo.userId, await StaffFilter.IsStaff(userInfo.userId));
 							await users.EarnDailyTickets(userInfo.userId);

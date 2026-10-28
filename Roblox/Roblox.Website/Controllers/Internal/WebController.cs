@@ -34,7 +34,7 @@ public class WebController : ControllerBase
     
     static WebController()
     {
-        if (Roblox.Configuration.LocalDevelopment) return;
+        if (!Roblox.Configuration.AllowUntrustedContentProcessing) return; // no game servers on this host
         // Init server close tasks
         Task.Run(async () =>
         {

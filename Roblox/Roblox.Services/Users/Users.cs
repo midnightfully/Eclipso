@@ -1258,7 +1258,7 @@ public class UsersService : ServiceBase, IService
 				}
 			}
 
-			if (!Roblox.Configuration.LocalDevelopment)
+			if (Roblox.Configuration.RequireSignupApproval)
             {
             using var usersService = ServiceProvider.GetOrCreate<UsersService>();
 			
@@ -1357,7 +1357,7 @@ public class UsersService : ServiceBase, IService
 			? Roblox.Configuration.SignupAvatarAssetIdsMan
 			: Roblox.Configuration.SignupAvatarAssetIdsFemale;
 
-		if (!Roblox.Configuration.LocalDevelopment) await av.RedrawAvatar(userId, avatarAssetIds);
+		if (Roblox.Configuration.AllowUntrustedContentProcessing) await av.RedrawAvatar(userId, avatarAssetIds);
 
 		return result;
 	}
