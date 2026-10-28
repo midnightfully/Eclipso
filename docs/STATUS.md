@@ -12,7 +12,7 @@ Updated 2026-10-28 by Claude. Keep this short; details live in FEATURE-MATRIX.md
 | Local (kindmops's PC) | http://127.0.0.1:5080 | The real website: .NET 10 backend :5080, Next.js dev :3000, PostgreSQL 16 :15432, Garnet cache :16379. Start/stop with the root .cmd launchers. |
 
 Repository: github.com/midnightfully/Eclipso. `main` = upstream bubbablox-v2 history. Work branches:
-`claude/recover-startup` (startup, routing, CSP, landing, VPS) → `claude/admin-milestone` (this phase). Neither is merged yet.
+`claude/recover-startup` (startup, routing, CSP, landing, VPS) → `claude/admin-milestone` (admin, publishing, economy) → `claude/website-completion` (launcher, production frontend, sessions, branding). None merged yet.
 
 Data: local DB `.local/pgdata-ready`; uploaded assets `.local/storage/asset`; thumbnails and group icons
 `api/public/images/{thumbnails,groups}` (git-ignored). Backups: `.local/backups/` (pg_dump before every migration).
@@ -25,15 +25,19 @@ Schema changes: `api/sql/migrations/` via `python local/migrate.py`.
 - Publishing (Image type) + economy incl. limited-unique concurrency and resale: `local/test-economy-pipeline.py` 10/10.
 - Purchases, serials and resale history survive a full stack restart.
 - Owner = Midnight (#36), confirmed by kindmops; recorded in admin_audit_log.
+- Sessions persist in PostgreSQL (30-day expiry, revocation): `local/test-sessions.py` 4/4.
+- Browser: staff opened admin dashboard, published an Image item through the form; buyer bought it through the item page (DB verified).
+- Frontend now served from a production build (`local/build-frontend.cmd`, then restart).
 
 ## Active work
-Browser walkthrough of admin publishing and buying (blocked this session: browser pane hidden), then the
-game renderer (needed for wearable items and avatars).
+Security pass (upstream RCE report, CSRF bypass prefixes, admin copy/upload routes, local-only endpoints), then
+the game renderer (needed for wearable items and avatars).
 
 ## Known failures / gaps
 - Wearable items (hats, gear, clothing, faces, packages) need the RCC-based game renderer for thumbnails and
   avatar renders; it is not set up. Model uploads also need the separate AssetValidationService (not present).
-- No browser click-through of admin publishing yet (API-verified only).
+- Limited/resale browser walkthrough not yet done by Claude (API-verified; kindmops Guide C/D).
+- Mobile/narrow layout: the 2017 login card overflows off-screen below ~850px width.
 - Upstream RCE report not yet located; dependency advisories (e.g. ImageSharp 2.1.3) not yet upgraded.
 - Several URL "bypass" prefixes (e.g. `/users/`, `/asset`) are exempt from CSRF checks.
 - Local-only endpoints (`/local/*`) are gated by LocalDevelopment + loopback; behind a reverse proxy every
